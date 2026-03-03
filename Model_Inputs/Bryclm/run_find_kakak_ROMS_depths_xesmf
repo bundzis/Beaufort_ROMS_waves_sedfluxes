@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=24
+#SBATCH --time=01:00:00
+#SBATCH --partition=amilan
+##SBATCH --mem=400G
+#SBATCH --job-name=find_kakak_ROMS_depths_xesmf
+#SBATCH --output=find_kakak_ROMS_depths_xesmf_005.out
+
+module purge
+module load anaconda
+conda activate mycustomenv
+
+python3 find_kakak_ROMS_depths_xesmf.py
