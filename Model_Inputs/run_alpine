@@ -1,0 +1,36 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=48
+#SBATCH --time=20:00:00
+#SBATCH --partition=amilan
+#SBATCH --job-name=ROMS_run
+#SBATCH --qos=normal
+#SBATCH --output=beaufort_shelf_2020_dbsed0007.%j.out
+#SBATCH --account=ucb543_asc1
+##SBATCH --constraint=ib
+
+#sinteractive
+
+pwd
+echo "Initial Module List"
+module list
+module purge
+module load intel/2022.1.2
+module load impi
+module load netcdf
+echo "Final Module List"
+module list
+
+echo "NETCDF PATH"
+which nc-config
+
+echo "MPI Path"
+which mpirun
+
+echo "Run ROMS"
+echo "Need to test syntax"
+export I_MPI_FABRICS=shm
+mpirun -np 48 ./coawstM /projects/brun1463/ROMS/Kakak3_Alpine_2020/Kaktovik_ak_2020/ocean_kaktovik_ak_2020.in
+
+echo "==End of Job=="
+EOF
