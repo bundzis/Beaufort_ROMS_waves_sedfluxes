@@ -2,10 +2,17 @@
 ------------------ Beaufort_ROMS_waves_sedfluxes -----------------
 ------------------------------------------------------------------
 
-This repo contains analysis scripts used for the manuscript 
+This repo contains inputs and analysis scripts used for the manuscript 
 "The Influence of Waves on Open Water Suspended Sediment Fluxes 
 on the Alaskan Beaufort Sea Shelf: A Numerical Modeling Study" that
-is in review at JGR Oceans (as of 10/15/2025).
+is published in JGR Oceans:
+
+Undzis, B., Moriarty, J. M., Eidam, E. F., & Overeem, I. (2025). The 
+influence of wave events on open water suspended sediment fluxes on 
+the Alaskan Beaufort Sea shelf: A numerical modeling study. Journal 
+of Geophysical Research: Oceans, 130(12), e2025JC023043.
 
 Updates:
 - Repo created (10/15/2025)
+- Reorganized, added in scripts for inputs (making inputs and things
+  needed to run ROMS) (3/3/2026)
