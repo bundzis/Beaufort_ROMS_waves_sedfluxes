@@ -276,7 +276,7 @@ def plot_bstrcwmax_cur_seds(ds, time_idx):
                         cmap=cmap_spd, vmin = speed_min, vmax=speed_max)
     ax[1].set_title('Depth-Averaged Current Magnitude')
     # Add colorbar
-    cbar_ax2 = fig.add_axes([0.30, 0.445, 0.13, 0.015])
+    cbar_ax2 = fig.add_axes([0.30, 0.43, 0.13, 0.015])
     fig.colorbar(m2, orientation='horizontal', label='Current Mag. (m/s)', 
                 cax=cbar_ax2, extend='max')
     #fig.colorbar(m1, ax=ax[0,0], label='[C]', extend='both')
@@ -294,7 +294,7 @@ def plot_bstrcwmax_cur_seds(ds, time_idx):
                             cmap=cmap_ssc, vmin=0, vmax=10)
     ax[2].set_title('Depth-Averaged SSC (mg/L)')
     # Add colorbar
-    cbar_ax3 = fig.add_axes([0.30, 0.18, 0.13, 0.015])
+    cbar_ax3 = fig.add_axes([0.30, 0.16, 0.13, 0.015])
     fig.colorbar(m3, orientation='horizontal', label='SSC (mg/L)', 
                 cax=cbar_ax3, extend='max')
     # Add quivers for sediment flux
@@ -304,7 +304,7 @@ def plot_bstrcwmax_cur_seds(ds, time_idx):
                    transform=ccrs.PlateCarree(),
                    color='teal', width=0.005, scale=scale_sed_flux,
                    angles='xy', scale_units='xy')
-    ax[2].quiverkey(q2, 0.85, 0.75, U=0.001, label='0.001 kg/m\u00b2s', fontproperties={'size':12})
+    ax[2].quiverkey(q2, 0.85, 0.75, U=0.2, label='0.2 kg/m\u00b2s', fontproperties={'size':12})
 
 
     # Loop through axes to add features
