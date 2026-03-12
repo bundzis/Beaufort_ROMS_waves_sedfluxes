@@ -1427,3 +1427,277 @@ plt.text(0.870, 0.142, 'b)', fontsize=fontsize, fontweight='bold', transform=plt
 
 #plt.tight_layout()
 
+
+# -----------------------------------------------------------
+# ------ Plot 8: Plot Just Mud Fraction -----------------------
+# -------------------------------------------------------------
+
+# Make a plot if just the fraction of mud in the domain
+
+# Make the figure
+fig8, ax8 = plt.subplots(figsize=(14,8), dpi=300) # (width, height), (15, 12) for horizontal colorbar; (20, 16) for vertical colorbaroutside plots
+
+# --- Bottom subplot - Rivers ---
+# Plot the bathymetry
+#cs12 = ax7[1].contourf(grid.lon_rho.values, grid.lat_rho.values, grid.h[:,:].values, lev6, cmap=cmap7, extend='max')
+#cs13 = ax7[1].contour(grid.lon_rho.values, grid.lat_rho.values, grid.h[:,:].values, lev7, colors='dimgray')
+
+# Plot fraction of mud 
+cs12 = ax8.contourf(grid.lon_rho.values, grid.lat_rho.values, tot_mud_percent[0,0,:,:], lev_mud_frac, cmap=cmap_sed, extend='max')
+cs13 = ax8.contour(grid.lon_rho.values, grid.lat_rho.values, grid.h[:,:].values, lev7, colors='white')
+
+# Plot land as gray 
+cs12g = ax8.contourf(grid.lon_rho.values, grid.lat_rho.values, mask_rho2, cmap=reverse_colors, norm=norm)
+
+
+# Plot the 14 rivers in the grid
+# Go from West to East
+# Kalikpik River
+eta_kal_idx = 23 #22
+xi_kal_idx = 87
+s11 = ax8.scatter(grid.lon_rho[eta_kal_idx, xi_kal_idx].values, grid.lat_rho[eta_kal_idx, xi_kal_idx].values, 
+            marker='.', s=300, linewidth=4, color='r', label='Kalikpik')
+
+# Fish Creek
+eta_fis_idx = 20
+xi_fis_idx = 117 #116
+s12 = ax8.scatter(grid.lon_rho[eta_fis_idx, xi_fis_idx].values, grid.lat_rho[eta_fis_idx, xi_fis_idx].values, 
+            marker='x', s=100, linewidth=4, color='orange', label='Fish Creek')
+
+# Colville River
+eta_col_idx = 39
+xi_col_idx = 166 #166
+s13 = ax8.scatter(grid.lon_rho[eta_col_idx, xi_col_idx].values, grid.lat_rho[eta_col_idx, xi_col_idx].values, 
+            marker='.', s=300, linewidth=4, color='brown', label='Colville')
+
+# Sakonowyak River
+eta_sak_idx = 46 #45
+xi_sak_idx = 234
+s14 = ax8.scatter(grid.lon_rho[eta_sak_idx, xi_sak_idx].values, grid.lat_rho[eta_sak_idx, xi_sak_idx].values, 
+            marker='x', s=150, linewidth=6, color='green', label='Sakonowyak')
+
+# Kuparik
+# Kukpuk - Change this to be labeled as the Kuparuk since it  is actually the main channel 
+# of the Kuparuk River
+s15 = ax8.scatter(grid.lon_rho[eta_kup_idx, xi_kup_idx].values, grid.lat_rho[eta_kup_idx, xi_kup_idx].values, 
+            marker='.', s=300, linewidth=4, color='b', label='Kuparuk')
+
+# Kuparuk - commented out to move dot onto old Kukpuk since that is the main 
+# channel of the Kuparuk 
+#s6 = ax3[1].scatter(x_rho_flat_trimmed[xi_kup_idx]/1000, y_rho_flat[eta_kup_idx]/1000, 
+ #           marker='x', s=100, linewidth=4, color='pink', label='Kuparuk')
+
+# Fawn Creek
+#eta_faw_idx = 44 #43
+#xi_faw_idx = 249
+#s7 = ax3[1].scatter(grid.lon_rho[eta_faw_idx, xi_faw_idx].values, grid.lat_rho[eta_faw_idx, xi_faw_idx].values, 
+ #           marker='.', s=300, linewidth=4, color='darkviolet', label='Fawn Creek')
+
+# Putuligayuk River
+eta_put_idx = 28 #27
+xi_put_idx = 264
+s16 = ax8.scatter(grid.lon_rho[eta_put_idx, xi_put_idx].values, grid.lat_rho[eta_put_idx, xi_put_idx].values, 
+            marker='x', s=100, linewidth=4, color='dodgerblue', label='Putuligayuk')
+
+# Sagavanirktok River
+eta_sag_idx = 37 #36
+xi_sag_idx = 279
+s17 = ax8.scatter(grid.lon_rho[eta_sag_idx, xi_sag_idx].values, grid.lat_rho[eta_sag_idx, xi_sag_idx].values, 
+            marker='.', s=300, linewidth=3, color='deepskyblue', label='Sagavanirktok')
+
+# Canning River
+# Staines River
+eta_sta_idx = 27 #26
+xi_sta_idx = 393
+s18 = ax8.scatter(grid.lon_rho[eta_sta_idx, xi_sta_idx].values, grid.lat_rho[eta_sta_idx, xi_sta_idx].values, 
+            marker='x', s=100, linewidth=4, color='gold', label='Staines')
+
+# Canning River
+eta_can_idx = 20 #19
+xi_can_idx = 416
+s19 = ax8.scatter(grid.lon_rho[eta_can_idx, xi_can_idx].values, grid.lat_rho[eta_can_idx, xi_can_idx].values, 
+            marker='.', s=300, linewidth=4, color='darkorange', label='Canning')
+
+# Katakturuk River
+eta_kat_idx = 9 #8
+xi_kat_idx = 447
+s20 = ax8.scatter(grid.lon_rho[eta_kat_idx, xi_kat_idx].values, grid.lat_rho[eta_kat_idx, xi_kat_idx].values, 
+            marker='x', s=100, linewidth=4, color='aquamarine', label='Katakturuk')
+
+# Hulahula River
+eta_hul_idx = 40
+xi_hul_idx = 489
+s21 = ax8.scatter(grid.lon_rho[eta_hul_idx, xi_hul_idx].values, grid.lat_rho[eta_hul_idx, xi_hul_idx].values, 
+            marker='.', s=300, linewidth=4, color='blueviolet', label='Hulahula')
+
+# Jago River
+eta_jag_idx = 62 #61
+xi_jag_idx = 528
+s22 = ax8.scatter(grid.lon_rho[eta_jag_idx, xi_jag_idx].values, grid.lat_rho[eta_jag_idx, xi_jag_idx].values, 
+            marker='x', s=100, linewidth=4, color='magenta', label='Jago')
+
+# Siksik River
+eta_sik_idx = 46
+xi_sik_idx = 574 #573
+s23 = ax8.scatter(grid.lon_rho[eta_sik_idx, xi_sik_idx].values, grid.lat_rho[eta_sik_idx, xi_sik_idx].values, 
+            marker='.', s=300, linewidth=4, color='deeppink', label='Siksik')
+
+
+# Temporary not too bad legend
+ax8.legend(loc='lower left', ncol=4, fontsize=14, columnspacing=0.75, labelspacing=0.1)
+
+# Format axes
+ax8.set_xlabel('Longitude', fontsize=fontsize)
+ax8.set_ylabel('Latitude', fontsize=fontsize, rotation=0, labelpad=60, va='center') #118
+
+# Specify colorbar - bottom plot 
+# If horizontal and in axes
+cbar8 = plt.colorbar(cs12, cax=ax8.inset_axes((0.55, 0.92, 0.45, 0.05)),      #(0.38, 0.92, 0.6, 0.05)
+                     ticks=[0, .2, .4, .6, .8, 1], ax=ax8, 
+                     orientation='horizontal').set_label(label='Mud Fraction', size=fontsize-2)
+
+
+
+# -----------------------------------------------------------
+# ------ Plot 9: Plot JustBathymetry & Transects -----------------------
+# -------------------------------------------------------------
+
+# Make a plot if just the fraction of mud in the domain
+
+# Make the figure
+fig9, ax9 = plt.subplots(figsize=(14,8), dpi=300) # (width, height), (15, 12) for horizontal colorbar; (20, 16) for vertical colorbaroutside plots
+
+# --- Bottom subplot - Rivers ---
+# Plot the bathymetry
+#cs12 = ax7[1].contourf(grid.lon_rho.values, grid.lat_rho.values, grid.h[:,:].values, lev6, cmap=cmap7, extend='max')
+#cs13 = ax7[1].contour(grid.lon_rho.values, grid.lat_rho.values, grid.h[:,:].values, lev7, colors='dimgray')
+
+# Plot the bathymetry
+cs11 = ax9.contourf(grid.lon_rho.values, grid.lat_rho.values, grid.h[:,:].values, lev6, cmap=cmap7, extend='max')
+
+# Plot land
+cs11f = ax9.contourf(grid.lon_rho.values, grid.lat_rho.values, mask_rho2, cmap=reverse_colors, norm=norm)
+
+# Plot the 14 rivers in the grid
+# Go from West to East
+# Kalikpik River
+eta_kal_idx = 23 #22
+xi_kal_idx = 87
+s11 = ax9.scatter(grid.lon_rho[eta_kal_idx, xi_kal_idx].values, grid.lat_rho[eta_kal_idx, xi_kal_idx].values, 
+            marker='.', s=300, linewidth=4, color='r', label='Kalikpik')
+
+# Fish Creek
+eta_fis_idx = 20
+xi_fis_idx = 117 #116
+s12 = ax9.scatter(grid.lon_rho[eta_fis_idx, xi_fis_idx].values, grid.lat_rho[eta_fis_idx, xi_fis_idx].values, 
+            marker='x', s=100, linewidth=4, color='orange', label='Fish Creek')
+
+# Colville River
+eta_col_idx = 39
+xi_col_idx = 166 #166
+s13 = ax9.scatter(grid.lon_rho[eta_col_idx, xi_col_idx].values, grid.lat_rho[eta_col_idx, xi_col_idx].values, 
+            marker='.', s=300, linewidth=4, color='brown', label='Colville')
+
+# Sakonowyak River
+eta_sak_idx = 46 #45
+xi_sak_idx = 234
+s14 = ax9.scatter(grid.lon_rho[eta_sak_idx, xi_sak_idx].values, grid.lat_rho[eta_sak_idx, xi_sak_idx].values, 
+            marker='x', s=150, linewidth=6, color='green', label='Sakonowyak')
+
+# Kuparik
+# Kukpuk - Change this to be labeled as the Kuparuk since it  is actually the main channel 
+# of the Kuparuk River
+s15 = ax9.scatter(grid.lon_rho[eta_kup_idx, xi_kup_idx].values, grid.lat_rho[eta_kup_idx, xi_kup_idx].values, 
+            marker='.', s=300, linewidth=4, color='b', label='Kuparuk')
+
+# Kuparuk - commented out to move dot onto old Kukpuk since that is the main 
+# channel of the Kuparuk 
+#s6 = ax3[1].scatter(x_rho_flat_trimmed[xi_kup_idx]/1000, y_rho_flat[eta_kup_idx]/1000, 
+ #           marker='x', s=100, linewidth=4, color='pink', label='Kuparuk')
+
+# Fawn Creek
+#eta_faw_idx = 44 #43
+#xi_faw_idx = 249
+#s7 = ax3[1].scatter(grid.lon_rho[eta_faw_idx, xi_faw_idx].values, grid.lat_rho[eta_faw_idx, xi_faw_idx].values, 
+ #           marker='.', s=300, linewidth=4, color='darkviolet', label='Fawn Creek')
+
+# Putuligayuk River
+eta_put_idx = 28 #27
+xi_put_idx = 264
+s16 = ax9.scatter(grid.lon_rho[eta_put_idx, xi_put_idx].values, grid.lat_rho[eta_put_idx, xi_put_idx].values, 
+            marker='x', s=100, linewidth=4, color='dodgerblue', label='Putuligayuk')
+
+# Sagavanirktok River
+eta_sag_idx = 37 #36
+xi_sag_idx = 279
+s17 = ax9.scatter(grid.lon_rho[eta_sag_idx, xi_sag_idx].values, grid.lat_rho[eta_sag_idx, xi_sag_idx].values, 
+            marker='.', s=300, linewidth=3, color='deepskyblue', label='Sagavanirktok')
+
+# Canning River
+# Staines River
+eta_sta_idx = 27 #26
+xi_sta_idx = 393
+s18 = ax9.scatter(grid.lon_rho[eta_sta_idx, xi_sta_idx].values, grid.lat_rho[eta_sta_idx, xi_sta_idx].values, 
+            marker='x', s=100, linewidth=4, color='gold', label='Staines')
+
+# Canning River
+eta_can_idx = 20 #19
+xi_can_idx = 416
+s19 = ax9.scatter(grid.lon_rho[eta_can_idx, xi_can_idx].values, grid.lat_rho[eta_can_idx, xi_can_idx].values, 
+            marker='.', s=300, linewidth=4, color='darkorange', label='Canning')
+
+# Katakturuk River
+eta_kat_idx = 9 #8
+xi_kat_idx = 447
+s20 = ax9.scatter(grid.lon_rho[eta_kat_idx, xi_kat_idx].values, grid.lat_rho[eta_kat_idx, xi_kat_idx].values, 
+            marker='x', s=100, linewidth=4, color='aquamarine', label='Katakturuk')
+
+# Hulahula River
+eta_hul_idx = 40
+xi_hul_idx = 489
+s21 = ax9.scatter(grid.lon_rho[eta_hul_idx, xi_hul_idx].values, grid.lat_rho[eta_hul_idx, xi_hul_idx].values, 
+            marker='.', s=300, linewidth=4, color='blueviolet', label='Hulahula')
+
+# Jago River
+eta_jag_idx = 62 #61
+xi_jag_idx = 528
+s22 = ax9.scatter(grid.lon_rho[eta_jag_idx, xi_jag_idx].values, grid.lat_rho[eta_jag_idx, xi_jag_idx].values, 
+            marker='x', s=100, linewidth=4, color='magenta', label='Jago')
+
+# Siksik River
+eta_sik_idx = 46
+xi_sik_idx = 574 #573
+s23 = ax9.scatter(grid.lon_rho[eta_sik_idx, xi_sik_idx].values, grid.lat_rho[eta_sik_idx, xi_sik_idx].values, 
+            marker='.', s=300, linewidth=4, color='deeppink', label='Siksik')
+
+# Plot transects
+# Transect 1
+ax9.plot(grid.lon_rho[41:165,xi1].values, grid.lat_rho[41:165,xi1].values, '-', linewidth=5, color='#D81B60', label='Transect 1')
+# Transect 2
+ax9.plot(grid.lon_rho[17:150,xi2].values, grid.lat_rho[17:150,xi2].values, '-', linewidth=5, color='#1E88E5', label='Transect 2')
+# Transect 3
+#ax9.plot(grid.lon_rho[12:125,xi3].values, grid.lat_rho[12:125,xi3].values, '-', linewidth=5, color='#FFC107', label='Transect 3')
+
+# Temporary not too bad legend
+ax9.legend(loc='lower left', ncol=4, fontsize=14, columnspacing=0.75, labelspacing=0.1)
+
+# Format axes
+ax9.set_xlabel('Longitude', fontsize=fontsize)
+ax9.set_ylabel('Latitude', fontsize=fontsize, rotation=0, labelpad=60, va='center') #118
+
+# Specify colorbar - bottom plot 
+# If horizontal and in axes
+cbar8 = plt.colorbar(cs11, cax=ax9.inset_axes((0.55, 0.92, 0.45, 0.05)),      #(0.38, 0.92, 0.6, 0.05)
+                     ticks=[0, 20, 40, 60, 80], ax=ax9, 
+                     orientation='horizontal').set_label(label='Depth (m)', size=fontsize-2)
+
+
+
+
+
+
+
+
+
+
+
