@@ -251,7 +251,7 @@ def plot_bstrcwmax_cur_seds(ds, time_idx):
 
     # Set the scales for the currents
     scale_current = 1
-    scale_sed_flux = 1
+    scale_sed_flux = 0.1
 
     # Set the number of quivers
     n_quiv = 25
@@ -304,7 +304,7 @@ def plot_bstrcwmax_cur_seds(ds, time_idx):
                    transform=ccrs.PlateCarree(),
                    color='teal', width=0.005, scale=scale_sed_flux,
                    angles='xy', scale_units='xy')
-    ax[2].quiverkey(q2, 0.85, 0.75, U=0.2, label='0.2 kg/m\u00b2s', fontproperties={'size':12})
+    ax[2].quiverkey(q2, 0.85, 0.75, U=0.001, label='0.001 kg/m\u00b2s', fontproperties={'size':12})
 
 
     # Loop through axes to add features
