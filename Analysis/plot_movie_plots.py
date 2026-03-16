@@ -276,7 +276,7 @@ def plot_bstrcwmax_cur_seds(ds, time_idx):
                         cmap=cmap_spd, vmin = speed_min, vmax=speed_max)
     ax[1].set_title('Depth-Averaged Current Magnitude')
     # Add colorbar
-    cbar_ax2 = fig.add_axes([0.30, 0.43, 0.13, 0.015])
+    cbar_ax2 = fig.add_axes([0.30, 0.44, 0.13, 0.015])
     fig.colorbar(m2, orientation='horizontal', label='Current Mag. (m/s)', 
                 cax=cbar_ax2, extend='max')
     #fig.colorbar(m1, ax=ax[0,0], label='[C]', extend='both')
@@ -294,7 +294,7 @@ def plot_bstrcwmax_cur_seds(ds, time_idx):
                             cmap=cmap_ssc, vmin=0, vmax=10)
     ax[2].set_title('Depth-Averaged SSC (mg/L)')
     # Add colorbar
-    cbar_ax3 = fig.add_axes([0.30, 0.16, 0.13, 0.015])
+    cbar_ax3 = fig.add_axes([0.30, 0.165, 0.13, 0.015])
     fig.colorbar(m3, orientation='horizontal', label='SSC (mg/L)', 
                 cax=cbar_ax3, extend='max')
     # Add quivers for sediment flux
@@ -302,7 +302,7 @@ def plot_bstrcwmax_cur_seds(ds, time_idx):
                    u_east_depth_int_ssflux[::n_quiv,::n_quiv]*mask_rho_nan.nudge_mask_rho_nan[::n_quiv,::n_quiv], 
                    v_north_depth_int_ssflux[::n_quiv,::n_quiv]*mask_rho_nan.nudge_mask_rho_nan[::n_quiv,::n_quiv], 
                    transform=ccrs.PlateCarree(),
-                   color='teal', width=0.005, scale=scale_sed_flux,
+                   color='teal', width=0.005, scale=0.001,
                    angles='xy', scale_units='xy')
     ax[2].quiverkey(q2, 0.85, 0.75, U=0.001, label='0.001 kg/m\u00b2s', fontproperties={'size':12})
 
