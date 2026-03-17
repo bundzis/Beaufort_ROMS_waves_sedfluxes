@@ -302,9 +302,9 @@ def plot_bstrcwmax_cur_seds(ds, time_idx):
                    u_east_depth_int_ssflux[::n_quiv,::n_quiv]*mask_rho_nan.nudge_mask_rho_nan[::n_quiv,::n_quiv], 
                    v_north_depth_int_ssflux[::n_quiv,::n_quiv]*mask_rho_nan.nudge_mask_rho_nan[::n_quiv,::n_quiv], 
                    transform=ccrs.PlateCarree(),
-                   color='teal', width=0.005, scale=0.001,
+                   color='teal', width=0.005, scale=0.005,
                    angles='xy', scale_units='xy')
-    ax[2].quiverkey(q2, 0.85, 0.75, U=0.001, label='0.001 kg/m\u00b2s', fontproperties={'size':12})
+    ax[2].quiverkey(q2, 0.85, 0.75, U=0.005, label='0.005 kg/m\u00b2s', fontproperties={'size':12}) # 0.001
 
 
     # Loop through axes to add features
