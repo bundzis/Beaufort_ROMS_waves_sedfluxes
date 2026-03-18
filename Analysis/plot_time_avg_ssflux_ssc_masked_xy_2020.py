@@ -2253,646 +2253,872 @@ plt.text(0.773, 0.113, 'd)', fontsize=fontsize, fontweight='bold', color='k', tr
 
 
 
+# ----------------------------------------------------------------------------------------------
+# -------------------------- Plot 8: Sediment Flux, SSC, and -----------------------------------
+# ----------------------- Net Erosion & Deposition Masked XY (slightly different) --------------
+# ----------------------------------------------------------------------------------------------
+# Make the same plot as above but with some slight edits
+# (mg/L SSC, "net deposition" on colorbar, and add in river locations and legend 
+# to all panels) - update the river markers
+
+river_marker_colors = ['#FC440F', '#F5ED00', '#5EF38C', '#26532B', '#F43ECF', '#9C00A8',
+                       '#0115F5', '#00A6A6', '#AB64EB', '#D44179', '#08E0E3', '#B27009', '#EA8D40']
 
 
+# Make the figure
+fig8, ax8 = plt.subplots(4, figsize=(22,21)) # (18,8) (26,12) (26,8) (26,10)
 
-
-
-
-
-
-# Calculate and print a bunch of stats 
-# Make a function to mask the data
-def masked_array(data, threshold):
-    """
-    This function takes an array and masks all values that are less
-    than a certain given threshold. The functions returns 1 for areas that meet 
-    the condition and 0 for areas that don't. So areas where the array is less
-    than the threshold get returned as 1 and areas greater than the threshold
-    are returned as 0. This function maintains the shape of the array.
-    
-    """
-    return (data <= threshold).astype(int)
-
-# Make a function to mask the data but that takes two thresholds
-def masked_array_lowhigh_2dloop(data, lower, upper):
-    """
-    This function takes an array and masks all values that are less
-    than a certain given threshold. The functions returns 1 for areas that meet 
-    the condition and 0 for areas that don't. So areas where the array is less
-    than the threshold get returned as 1 and areas greater than the threshold
-    are returned as 0. This function maintains the shape of the array.
-    
-    """
-    mask_tmp = np.empty_like((data))
-    
-    # Loop through dimension 1
-    for i in range(len(data[:,0])):
-        # Loop through dimension 2
-        for j in range(len(data[0,:])):
-            # Compare against threshold 
-            value = data[i,j]
-            if lower < value <= upper:
-                mask_tmp[i,j] = 1
-            else:
-                mask_tmp[i,j] = 0
-    
-    
-    return (mask_tmp).astype(int)
- 
-# Call the function to make the mask
-# First make an array of the bathymetry of the grid pre-masked
-h_masked = grid.h * mask_rho_nan.nudge_mask_rho_nan
-# Inner shelf
-h_masked1 = h_masked.copy()
-#inner_shelf_mask_rho = masked_array(h_masked1, 20)
-inner_shelf_mask_rho = masked_array_lowhigh_2dloop(h_masked1, 2, 20)
-# Mid shelf
-h_masked2 = h_masked.copy()
-mid_shelf_mask_rho = masked_array_lowhigh_2dloop(h_masked2, 20, 40)
-# Outer shelf 
-h_masked3 = h_masked.copy()
-outer_shelf_mask_rho = masked_array_lowhigh_2dloop(h_masked3, 40, 60)
-# 0 - 10 m depth
-h_masked4 = h_masked.copy()
-#inner_10m_mask_rho = masked_array(h_masked4, 10)
-inner_10m_mask_rho = masked_array_lowhigh_2dloop(h_masked4, 2, 10)
-# 10 - 60 m depth
-h_masked5 = h_masked.copy()
-outer_10_60m_mask_rho = masked_array_lowhigh_2dloop(h_masked5, 10, 60)
-
-# Make the masks nan where they are 0 so that these out of bounds areas are 
-# nanned out 
-# Inner Shelf
-inner_shelf_mask_rho_nan_idx = np.where(inner_shelf_mask_rho == 0.0)
-inner_shelf_mask_rho_nan = inner_shelf_mask_rho.copy()
-inner_shelf_mask_rho_nan = inner_shelf_mask_rho_nan.astype('float')
-inner_shelf_mask_rho_nan[inner_shelf_mask_rho_nan_idx] = np.nan
-# Mid Shelf
-mid_shelf_mask_rho_nan_idx = np.where(mid_shelf_mask_rho == 0.0)
-mid_shelf_mask_rho_nan = mid_shelf_mask_rho.copy()
-mid_shelf_mask_rho_nan = mid_shelf_mask_rho_nan.astype('float')
-mid_shelf_mask_rho_nan[mid_shelf_mask_rho_nan_idx] = np.nan
-# Outer Shelf 
-outer_shelf_mask_rho_nan_idx = np.where(outer_shelf_mask_rho == 0.0)
-outer_shelf_mask_rho_nan = outer_shelf_mask_rho.copy()
-outer_shelf_mask_rho_nan = outer_shelf_mask_rho_nan.astype('float')
-outer_shelf_mask_rho_nan[outer_shelf_mask_rho_nan_idx] = np.nan
-# 0 - 10 m depth
-inner_10m_mask_rho_nan_idx = np.where(inner_10m_mask_rho == 0.0)
-inner_10m_mask_rho_nan = inner_10m_mask_rho.copy()
-inner_10m_mask_rho_nan = inner_10m_mask_rho_nan.astype('float')
-inner_10m_mask_rho_nan[inner_10m_mask_rho_nan_idx] = np.nan
-# 10 - 60 m depth
-outer_10_60m_mask_rho_nan_idx = np.where(outer_10_60m_mask_rho == 0.0)
-outer_10_60m_mask_rho_nan = outer_10_60m_mask_rho.copy()
-outer_10_60m_mask_rho_nan = outer_10_60m_mask_rho_nan.astype('float')
-outer_10_60m_mask_rho_nan[outer_10_60m_mask_rho_nan_idx] = np.nan
-
-
-# Now multiply by the mask to get the different regions 
-# For depth-averaged ssc
-# Inner 
-ssc_depth_avg_allsed_avg_masked_inner = ssc_depth_avg_allsed_avg * inner_shelf_mask_rho_nan
-# Mid
-ssc_depth_avg_allsed_avg_masked_mid = ssc_depth_avg_allsed_avg * mid_shelf_mask_rho_nan
-# Outer
-ssc_depth_avg_allsed_avg_masked_outer = ssc_depth_avg_allsed_avg * outer_shelf_mask_rho_nan
-# 0 - 10 m
-ssc_depth_avg_allsed_avg_masked_10m = ssc_depth_avg_allsed_avg * inner_10m_mask_rho_nan
-# 10 - 60 m
-ssc_depth_avg_allsed_avg_masked_10_60m = ssc_depth_avg_allsed_avg * outer_10_60m_mask_rho_nan
-
-# For surface SSC 
-# Inner 
-ssc_surf_allsed_avg_masked_inner = ssc_surf_allsed_avg * inner_shelf_mask_rho_nan
-# Mid
-ssc_surf_allsed_avg_masked_mid = ssc_surf_allsed_avg * mid_shelf_mask_rho_nan
-# Outer
-ssc_surf_allsed_avg_masked_outer = ssc_surf_allsed_avg * outer_shelf_mask_rho_nan
-# 0 - 10 m
-ssc_surf_allsed_avg_masked_10m = ssc_surf_allsed_avg * inner_10m_mask_rho_nan
-# 10 - 60 m
-ssc_surf_allsed_avg_masked_10_60m = ssc_surf_allsed_avg * outer_10_60m_mask_rho_nan
-
-# For depth-integrated ssflux
-# 0 - 10 m eastern
-# u
-ssflux_depth_int_u_avg_masked_10m = ssflux_depth_int_u_avg * inner_10m_mask_rho
-ssflux_depth_int_u_avg_masked_10m_east = ssflux_depth_int_u_avg_masked_10m[:,304:]
-# v 
-ssflux_depth_int_v_avg_masked_10m = ssflux_depth_int_v_avg * inner_10m_mask_rho
-ssflux_depth_int_v_avg_masked_10m_east = ssflux_depth_int_v_avg_masked_10m[:,304:]
-# 0 - 10 m western
-# u
-ssflux_depth_int_u_avg_masked_10m_west = ssflux_depth_int_u_avg_masked_10m[:,:304]
-# v 
-ssflux_depth_int_v_avg_masked_10m_west = ssflux_depth_int_v_avg_masked_10m[:,:304]
-# Inner 
-ssflux_depth_int_u_avg_masked_inner = ssflux_depth_int_u_avg * inner_shelf_mask_rho_nan
-ssflux_depth_int_v_avg_masked_inner = ssflux_depth_int_v_avg * inner_shelf_mask_rho_nan
-# Mid
-ssflux_depth_int_u_avg_masked_mid = ssflux_depth_int_u_avg * mid_shelf_mask_rho_nan
-ssflux_depth_int_v_avg_masked_mid = ssflux_depth_int_v_avg * mid_shelf_mask_rho_nan
-# Outer
-ssflux_depth_int_u_avg_masked_outer = ssflux_depth_int_u_avg * outer_shelf_mask_rho_nan
-ssflux_depth_int_v_avg_masked_outer = ssflux_depth_int_v_avg * outer_shelf_mask_rho_nan
-# 0 - 10 m
-ssflux_depth_int_u_avg_masked_10m = ssflux_depth_int_u_avg * inner_10m_mask_rho_nan
-ssflux_depth_int_v_avg_masked_10m = ssflux_depth_int_v_avg * inner_10m_mask_rho_nan
-# 10 - 60 m
-ssflux_depth_int_u_avg_masked_10_60m = ssflux_depth_int_u_avg * outer_10_60m_mask_rho_nan
-ssflux_depth_int_v_avg_masked_10_60m = ssflux_depth_int_v_avg * outer_10_60m_mask_rho_nan
-# Surface ssflux
-# Inner 
-ssflux_u_surf_avg_masked_inner = ssflux_u_surf_avg * inner_shelf_mask_rho_nan
-ssflux_v_surf_avg_masked_inner = ssflux_v_surf_avg * inner_shelf_mask_rho_nan
-
-# Mask and trim these so that we are just looking at the regions in the plot
-# Mask, trim, slice
-# Mask
-# SSC
-# Depth-averaged SSC
-# Inner
-ssc_depth_avg_allsed_avg_masked_inner_masked = ssc_depth_avg_allsed_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# Mid
-ssc_depth_avg_allsed_avg_masked_mid_masked = ssc_depth_avg_allsed_avg_masked_mid*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# Outer
-ssc_depth_avg_allsed_avg_masked_outer_masked = ssc_depth_avg_allsed_avg_masked_outer*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# 0 - 10 m
-ssc_depth_avg_allsed_avg_masked_10m_masked = ssc_depth_avg_allsed_avg_masked_10m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# 10 - 60 m
-ssc_depth_avg_allsed_avg_masked_10_60m_masked = ssc_depth_avg_allsed_avg_masked_10_60m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# Surface SSC
-# Inner
-ssc_surf_allsed_avg_masked_inner_masked = ssc_surf_allsed_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# Mid
-ssc_surf_allsed_avg_masked_mid_masked = ssc_surf_allsed_avg_masked_mid*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# Outer
-ssc_surf_allsed_avg_masked_outer_masked = ssc_surf_allsed_avg_masked_outer*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# 0 - 10 m
-ssc_surf_allsed_avg_masked_10m_masked = ssc_surf_allsed_avg_masked_10m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# 10 - 60 m
-ssc_surf_allsed_avg_masked_10_60m_masked = ssc_surf_allsed_avg_masked_10_60m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-
-# SSflux - depth-integrated 
-# Inner
-ssflux_depth_int_u_avg_masked_inner_masked = ssflux_depth_int_u_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-ssflux_depth_int_v_avg_masked_inner_masked = ssflux_depth_int_v_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# Mid
-ssflux_depth_int_u_avg_masked_mid_masked = ssflux_depth_int_u_avg_masked_mid*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-ssflux_depth_int_v_avg_masked_mid_masked = ssflux_depth_int_v_avg_masked_mid*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# Outer
-ssflux_depth_int_u_avg_masked_outer_masked = ssflux_depth_int_u_avg_masked_outer*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-ssflux_depth_int_v_avg_masked_outer_masked = ssflux_depth_int_v_avg_masked_outer*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# 0 - 10 m
-ssflux_depth_int_u_avg_masked_10m_masked = ssflux_depth_int_u_avg_masked_10m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-ssflux_depth_int_v_avg_masked_10m_masked = ssflux_depth_int_v_avg_masked_10m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# 10 - 60 m
-ssflux_depth_int_u_avg_masked_10_60m_masked = ssflux_depth_int_u_avg_masked_10_60m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-ssflux_depth_int_v_avg_masked_10_60m_masked = ssflux_depth_int_v_avg_masked_10_60m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-# Surface ssflux
-# Inner
-ssflux_u_surf_avg_masked_inner_masked = ssflux_u_surf_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-ssflux_v_surf_avg_masked_inner_masked = ssflux_v_surf_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
-
-
-# Trim
-# SSC
-# Depth-averaged SSC
-# Inner
-ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed = ssc_depth_avg_allsed_avg_masked_inner_masked[:,c_west:-c_west]
-# Mid
-ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed = ssc_depth_avg_allsed_avg_masked_mid_masked[:,c_west:-c_west]
-# Outer
-ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed = ssc_depth_avg_allsed_avg_masked_outer_masked[:,c_west:-c_west]
-# 0 - 10 m
-ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed = ssc_depth_avg_allsed_avg_masked_10m_masked[:,c_west:-c_west]
-# 10 - 60 m
-ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed = ssc_depth_avg_allsed_avg_masked_10_60m_masked[:,c_west:-c_west]
-# Surface SSC
-# Inner
-ssc_surf_allsed_avg_masked_inner_masked_trimmed = ssc_surf_allsed_avg_masked_inner_masked[:,c_west:-c_west]
-# Mid
-ssc_surf_allsed_avg_masked_mid_masked_trimmed = ssc_surf_allsed_avg_masked_mid_masked[:,c_west:-c_west]
-# Outer 
-ssc_surf_allsed_avg_masked_outer_masked_trimmed = ssc_surf_allsed_avg_masked_outer_masked[:,c_west:-c_west]
-# 0 - 10 m
-ssc_surf_allsed_avg_masked_10m_masked_trimmed = ssc_surf_allsed_avg_masked_10m_masked[:,c_west:-c_west]
-# 10 - 60 m
-ssc_surf_allsed_avg_masked_10_60m_masked_trimmed = ssc_surf_allsed_avg_masked_10_60m_masked[:,c_west:-c_west]
-
-# SSflux
-# Inner
-ssflux_depth_int_u_avg_masked_inner_masked_trimmed = ssflux_depth_int_u_avg_masked_inner_masked[:,c_west:-c_west]
-ssflux_depth_int_v_avg_masked_inner_masked_trimmed = ssflux_depth_int_v_avg_masked_inner_masked[:,c_west:-c_west]
-# Mid
-ssflux_depth_int_u_avg_masked_mid_masked_trimmed = ssflux_depth_int_u_avg_masked_mid_masked[:,c_west:-c_west]
-ssflux_depth_int_v_avg_masked_mid_masked_trimmed = ssflux_depth_int_v_avg_masked_mid_masked[:,c_west:-c_west]
-# Outer 
-ssflux_depth_int_u_avg_masked_outer_masked_trimmed = ssflux_depth_int_u_avg_masked_outer_masked[:,c_west:-c_west]
-ssflux_depth_int_v_avg_masked_outer_masked_trimmed = ssflux_depth_int_v_avg_masked_outer_masked[:,c_west:-c_west]
-# 0 - 10 m
-ssflux_depth_int_u_avg_masked_10m_masked_trimmed = ssflux_depth_int_u_avg_masked_10m_masked[:,c_west:-c_west]
-ssflux_depth_int_v_avg_masked_10m_masked_trimmed = ssflux_depth_int_v_avg_masked_10m_masked[:,c_west:-c_west]
-# 10 - 60 m
-ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed = ssflux_depth_int_u_avg_masked_10_60m_masked[:,c_west:-c_west]
-ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed = ssflux_depth_int_v_avg_masked_10_60m_masked[:,c_west:-c_west]
-# Surface ssflux
-# Inner
-ssflux_u_surf_avg_masked_inner_masked_trimmed = ssflux_u_surf_avg_masked_inner_masked[:,c_west:-c_west]
-ssflux_v_surf_avg_masked_inner_masked_trimmed = ssflux_v_surf_avg_masked_inner_masked[:,c_west:-c_west]
-
-
-
-# Print some statistics 
-# SSC
-# Depth-averaged SSC
-# Mean 
-ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_avg)
-ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_avg = np.nanmean(ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) averaged ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_avg)
-ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_avg = np.nanmean(ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) averaged ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_avg)
-ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_avg = np.nanmean(ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m mean ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_avg)
-ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_avg = np.nanmean(ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m mean ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_avg)
-
-# Standard deviation 
-ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_std = np.nanstd(ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) std ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_std)
-ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_std = np.nanstd(ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) std ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_std)
-ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_std = np.nanstd(ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) std ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_std)
-ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_std = np.nanstd(ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m std total ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_std)
-ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_std = np.nanstd(ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m std ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_std)
-
-# Min
-ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_min = np.nanmin(ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) min ssc_depth_avg_allsed_avg(kg/m3): ', ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_min)
-ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_min = np.nanmin(ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) min ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_min)
-ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_min = np.nanmin(ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) min ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_min)
-ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_min = np.nanmin(ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m min ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_min)
-ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_min = np.nanmin(ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m min ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_min)
-
-# Max
-ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_max = np.nanmax(ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) max ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_max)
-ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_max = np.nanmax(ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) max ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_max)
-ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_max = np.nanmax(ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) max ssc_depth_avg_allsed_avg (kg/m3: ', ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_max)
-ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_max = np.nanmax(ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m max tssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_max)
-ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_max = np.nanmax(ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m max ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_max)
-
-
-# Surface SSC
-# Mean 
-ssc_surf_allsed_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssc_surf_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_inner_masked_trimmed_avg)
-ssc_surf_allsed_avg_masked_mid_masked_trimmed_avg = np.nanmean(ssc_surf_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) averaged ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_mid_masked_trimmed_avg)
-ssc_surf_allsed_avg_masked_outer_masked_trimmed_avg = np.nanmean(ssc_surf_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) averaged ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_outer_masked_trimmed_avg)
-ssc_surf_allsed_avg_masked_10m_masked_trimmed_avg = np.nanmean(ssc_surf_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m mean ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10m_masked_trimmed_avg)
-ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_avg = np.nanmean(ssc_surf_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m mean ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_avg)
-
-# Standard deviation 
-ssc_surf_allsed_avg_masked_inner_masked_trimmed_std = np.nanstd(ssc_surf_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) std ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_inner_masked_trimmed_std)
-ssc_surf_allsed_avg_masked_mid_masked_trimmed_std = np.nanstd(ssc_surf_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) std ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_mid_masked_trimmed_std)
-ssc_surf_allsed_avg_masked_outer_masked_trimmed_std = np.nanstd(ssc_surf_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) std ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_outer_masked_trimmed_std)
-ssc_surf_allsed_avg_masked_10m_masked_trimmed_std = np.nanstd(ssc_surf_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m std total ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10m_masked_trimmed_std)
-ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_std = np.nanstd(ssc_surf_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m std ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_std)
-
-# Min
-ssc_surf_allsed_avg_masked_inner_masked_trimmed_min = np.nanmin(ssc_surf_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) min ssc_surf_allsed_avg(kg/m3): ', ssc_surf_allsed_avg_masked_inner_masked_trimmed_min)
-ssc_surf_allsed_avg_masked_mid_masked_trimmed_min = np.nanmin(ssc_surf_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) min ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_mid_masked_trimmed_min)
-ssc_surf_allsed_avg_masked_outer_masked_trimmed_min = np.nanmin(ssc_surf_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) min ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_outer_masked_trimmed_min)
-ssc_surf_allsed_avg_masked_10m_masked_trimmed_min = np.nanmin(ssc_surf_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m min ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10m_masked_trimmed_min)
-ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_min = np.nanmin(ssc_surf_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m min ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_min)
-
-# Max
-ssc_surf_allsed_avg_masked_inner_masked_trimmed_max = np.nanmax(ssc_surf_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) max ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_inner_masked_trimmed_max)
-ssc_surf_allsed_avg_masked_mid_masked_trimmed_max = np.nanmax(ssc_surf_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) max ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_mid_masked_trimmed_max)
-ssc_surf_allsed_avg_masked_outer_masked_trimmed_max = np.nanmax(ssc_surf_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) max ssc_surf_allsed_avg (kg/m3: ', ssc_surf_allsed_avg_masked_outer_masked_trimmed_max)
-ssc_surf_allsed_avg_masked_10m_masked_trimmed_max = np.nanmax(ssc_surf_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m max tssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10m_masked_trimmed_max)
-ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_max = np.nanmax(ssc_surf_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m max ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_max)
-
-
-
-# Ssflux 
-# Mean in 0 - 10 m depth in east
-# u
-ssflux_depth_int_u_avg_masked_10m_east_avg = np.nanmean(ssflux_depth_int_u_avg_masked_10m_east, axis=(0,1))
-print('0 - 10 m mean total ssflux_depth_int_u_avg_masked_10m_east (kg/ms):', ssflux_depth_int_u_avg_masked_10m_east_avg)
-# v
-ssflux_depth_int_v_avg_masked_10m_east_avg = np.nanmean(ssflux_depth_int_v_avg_masked_10m_east, axis=(0,1))
-print('0 - 10 m mean total ssflux_depth_int_v_avg_masked_10m_east (kg/ms):', ssflux_depth_int_v_avg_masked_10m_east_avg)
-# Mean in 0 - 10 m depth in west
-# u
-ssflux_depth_int_u_avg_masked_10m_west_avg = np.nanmean(ssflux_depth_int_u_avg_masked_10m_west, axis=(0,1))
-print('0 - 10 m mean total ssflux_depth_int_u_avg_masked_10m_west (kg/ms):', ssflux_depth_int_u_avg_masked_10m_west_avg)
-# v
-ssflux_depth_int_v_avg_masked_10m_west_avg = np.nanmean(ssflux_depth_int_v_avg_masked_10m_west, axis=(0,1))
-print('0 - 10 m mean total ssflux_depth_int_v_avg_masked_10m_west (kg/ms):', ssflux_depth_int_v_avg_masked_10m_west_avg)
-# -- Mean --
 # Depth-integrated
-# Inner
-ssflux_depth_int_u_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssflux_depth_int_u_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_depth_int_u_avg (kg/ms): ', ssflux_depth_int_u_avg_masked_inner_masked_trimmed_avg)
-ssflux_depth_int_v_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssflux_depth_int_v_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_depth_int_v_avg (kg/ms): ', ssflux_depth_int_v_avg_masked_inner_masked_trimmed_avg)
-# Mid
-ssflux_depth_int_u_avg_masked_mid_masked_trimmed_avg = np.nanmean(ssflux_depth_int_u_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) averaged ssflux_depth_int_u_avg (kg/ms): ', ssflux_depth_int_u_avg_masked_mid_masked_trimmed_avg)
-ssflux_depth_int_v_avg_masked_mid_masked_trimmed_avg = np.nanmean(ssflux_depth_int_v_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) averaged ssflux_depth_int_v_avg (kg/ms): ', ssflux_depth_int_v_avg_masked_mid_masked_trimmed_avg)
-# Outer
-ssflux_depth_int_u_avg_masked_outer_masked_trimmed_avg = np.nanmean(ssflux_depth_int_u_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) averaged ssflux_depth_int_u_avg (kg/ms): ', ssflux_depth_int_u_avg_masked_outer_masked_trimmed_avg)
-ssflux_depth_int_v_avg_masked_outer_masked_trimmed_avg = np.nanmean(ssflux_depth_int_v_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) averaged ssflux_depth_int_v_avg (kg/ms): ', ssflux_depth_int_v_avg_masked_outer_masked_trimmed_avg)
-# 0 - 10
-ssflux_depth_int_u_avg_masked_10m_masked_trimmed_avg = np.nanmean(ssflux_depth_int_u_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m mean ssflux_depth_int_u_avg (kg/ms): ', ssflux_depth_int_u_avg_masked_10m_masked_trimmed_avg)
-ssflux_depth_int_v_avg_masked_10m_masked_trimmed_avg = np.nanmean(ssflux_depth_int_v_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m mean ssflux_depth_int_v_avg (kg/ms): ', ssflux_depth_int_v_avg_masked_10m_masked_trimmed_avg)
-# 10 - 60
-ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_avg = np.nanmean(ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m mean ssflux_depth_int_u_avg (kg/ms): ', ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_avg)
-ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_avg = np.nanmean(ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m mean ssflux_depth_int_v_avg (kg/ms): ', ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_avg)
-# Surface 
-# Inner
-ssflux_u_surf_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssflux_u_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_u_surf_avg (kg/ms): ', ssflux_u_surf_avg_masked_inner_masked_trimmed_avg)
-ssflux_v_surf_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssflux_v_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_v_surf_avg (kg/ms): ', ssflux_v_surf_avg_masked_inner_masked_trimmed_avg)
+# In the grid's u and v directions
+# Plot depth-avg salinity 
+ax8[0].fill_between(x_rho_flat_trimmed/1000, 0, 65, 
+               facecolor ='darkgray', alpha = 0.8)
+ax8[0].fill_between(x_rho_flat_trimmed/1000, 65 ,120, 
+               facecolor ='white', alpha = 0.8)
+# kg/m3
+cs20 = ax8[0].contourf(x_rho_flat_trimmed/1000, y_rho_flat/1000,
+                  ssc_depth_avg_allsed_avg_trimmed, lev6, cmap=cmap5, extend='max')
+# mg/L
+#cs20 = ax7[0].contourf(x_rho_flat_trimmed/1000, y_rho_flat/1000,
+ #                 ssc_depth_avg_allsed_avg_trimmed*1000, lev6*1000, cmap=cmap5, extend='max') 
+# Plot bathymetry contours 
+ax8[0].contour(x_rho_flat_trimmed/1000, y_rho_flat/1000, h_masked_trimmed, lev5, colors='dimgrey') # bisque
+# Plot currents
+q7 = ax8[0].quiver(x_rho_flat_trimmed_slice/1000, y_rho_flat_slice/1000, 
+                   ssflux_depth_int_u_avg_wland_masked_trimmed_slice, ssflux_depth_int_v_avg_wland_masked_trimmed_slice, 
+                   color='teal', width=2,
+                   angles='xy', scale_units='xy', units='xy')
+ax8[0].quiverkey(q7, 0.65, 0.85, U=0.02, label='0.02 kg $m^{-1}$ $s^{-1}$', fontproperties={'size':fontsize-2})
+# Label the plot
+#ax7.set_title('Time-Averaged Surface Currents (m/s)', fontsize=fontsize, y=1.08)
+plt.setp(ax8[0].get_xticklabels(), visible=False)
+#ax5[2].set_xlabel('X (km)', fontsize=fontsize)
+ax8[0].set_ylabel('Y (km)', fontsize=fontsize)
+#cbar10 = plt.colorbar(cs10, orientation='vertical', ax=ax8[2]).set_label(label='Current \nMagnitude (m/s)', size=fontsize)
 
 
-# -- Standard deviation--
-# Depth-integrated
-# Inner
-ssflux_depth_int_u_avg_masked_inner_masked_trimmed_std = np.nanstd(ssflux_depth_int_u_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_depth_int_u_std (kg/ms): ', ssflux_depth_int_u_avg_masked_inner_masked_trimmed_std)
-ssflux_depth_int_v_avg_masked_inner_masked_trimmed_std = np.nanstd(ssflux_depth_int_v_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_depth_int_v_std (kg/ms): ', ssflux_depth_int_v_avg_masked_inner_masked_trimmed_std)
-# Mid
-ssflux_depth_int_u_avg_masked_mid_masked_trimmed_std = np.nanstd(ssflux_depth_int_u_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) averaged ssflux_depth_int_u_std (kg/ms): ', ssflux_depth_int_u_avg_masked_mid_masked_trimmed_std)
-ssflux_depth_int_v_avg_masked_mid_masked_trimmed_std = np.nanstd(ssflux_depth_int_v_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) averaged ssflux_depth_int_v_std (kg/ms): ', ssflux_depth_int_v_avg_masked_mid_masked_trimmed_std)
-# Outer
-ssflux_depth_int_u_avg_masked_outer_masked_trimmed_std = np.nanstd(ssflux_depth_int_u_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) averaged ssflux_depth_int_u_std (kg/ms): ', ssflux_depth_int_u_avg_masked_outer_masked_trimmed_std)
-ssflux_depth_int_v_avg_masked_outer_masked_trimmed_std = np.nanstd(ssflux_depth_int_v_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) averaged ssflux_depth_int_v_std (kg/ms): ', ssflux_depth_int_v_avg_masked_outer_masked_trimmed_std)
-# 0 - 10
-ssflux_depth_int_u_avg_masked_10m_masked_trimmed_std = np.nanstd(ssflux_depth_int_u_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m mean ssflux_depth_int_u_std (kg/ms): ', ssflux_depth_int_u_avg_masked_10m_masked_trimmed_std)
-ssflux_depth_int_v_avg_masked_10m_masked_trimmed_std = np.nanstd(ssflux_depth_int_v_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m mean ssflux_depth_int_v_std (kg/ms): ', ssflux_depth_int_v_avg_masked_10m_masked_trimmed_std)
-# 10 - 60
-ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_std = np.nanstd(ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m mean ssflux_depth_int_u_std (kg/ms): ', ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_std)
-ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_std = np.nanstd(ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m mean ssflux_depth_int_v_std (kg/ms): ', ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_std)
-# Surface 
-# Inner
-ssflux_u_surf_avg_masked_inner_masked_trimmed_std = np.nanstd(ssflux_u_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_u_surf_std (kg/ms): ', ssflux_u_surf_avg_masked_inner_masked_trimmed_std)
-ssflux_v_surf_avg_masked_inner_masked_trimmed_std = np.nanstd(ssflux_v_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_v_surf_std (kg/ms): ', ssflux_v_surf_avg_masked_inner_masked_trimmed_std)
+# Surface ssflux and ssc
+# In the grid's u and v directions
+# Plot bathymetry
+# Plot surface ssc and flux
+ax8[1].fill_between(x_rho_flat_trimmed/1000, 0, 65, 
+               facecolor ='darkgray', alpha = 0.8)
+ax8[1].fill_between(x_rho_flat_trimmed/1000, 65 ,120, 
+               facecolor ='white', alpha = 0.8)
+# kg/m3
+cs21 = ax8[1].contourf(x_rho_flat_trimmed/1000, y_rho_flat/1000,
+                  ssc_surf_allsed_avg_wland_masked_trimmed, lev6, cmap=cmap5, extend='max')
+# mg/L
+#cs21 = ax7[1].contourf(x_rho_flat_trimmed/1000, y_rho_flat/1000,
+ #                 ssc_surf_allsed_avg_wland_masked_trimmed*1000, lev6*1000, cmap=cmap5, extend='max')
+# Plot bathymetry contours
+ax8[1].contour(x_rho_flat_trimmed/1000, y_rho_flat/1000, h_masked_trimmed, lev5, colors='dimgrey') # bisque 
+# Plot currents
+q8 = ax8[1].quiver(x_rho_flat_trimmed_slice/1000, y_rho_flat_slice/1000, ssflux_u_surf_avg_wland_masked_trimmed_slice, 
+                   ssflux_v_surf_avg_wland_masked_trimmed_slice, color='teal', width=2, 
+                   angles='xy', scale_units='xy', units='xy')
+ax8[1].quiverkey(q8, 0.65, 0.85, U=0.005, label='0.005 kg $m^{-2}$ $s^{-1}$', fontproperties={'size':fontsize-2})
+
+# Label the plot
+#ax7.set_title('Time-Averaged Surface Currents (m/s)', fontsize=fontsize, y=1.08)
+plt.setp(ax8[1].get_xticklabels(), visible=False)
+#ax8[0].set_xlabel('Longitude (degrees)', fontsize=fontsize)
+ax8[1].set_ylabel('Y (km)', fontsize=fontsize)
+#cbar8 = plt.colorbar(cs8, orientation='vertical', ax=ax8[0]).set_label(label='Current \nMagnitude (m/s)', size=fontsize)
 
 
-# -- Min --
-# Depth-integrated
-# Inner
-ssflux_depth_int_u_avg_masked_inner_masked_trimmed_min = np.nanmin(ssflux_depth_int_u_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_depth_int_u_min (kg/ms): ', ssflux_depth_int_u_avg_masked_inner_masked_trimmed_min)
-ssflux_depth_int_v_avg_masked_inner_masked_trimmed_min = np.nanmin(ssflux_depth_int_v_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_depth_int_v_min (kg/ms): ', ssflux_depth_int_v_avg_masked_inner_masked_trimmed_min)
-# Mid
-ssflux_depth_int_u_avg_masked_mid_masked_trimmed_min = np.nanmin(ssflux_depth_int_u_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) averaged ssflux_depth_int_u_min (kg/ms): ', ssflux_depth_int_u_avg_masked_mid_masked_trimmed_min)
-ssflux_depth_int_v_avg_masked_mid_masked_trimmed_min = np.nanmin(ssflux_depth_int_v_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) averaged ssflux_depth_int_v_min (kg/ms): ', ssflux_depth_int_v_avg_masked_mid_masked_trimmed_min)
-# Outer
-ssflux_depth_int_u_avg_masked_outer_masked_trimmed_min = np.nanmin(ssflux_depth_int_u_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) averaged ssflux_depth_int_u_min (kg/ms): ', ssflux_depth_int_u_avg_masked_outer_masked_trimmed_min)
-ssflux_depth_int_v_avg_masked_outer_masked_trimmed_min = np.nanmin(ssflux_depth_int_v_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) averaged ssflux_depth_int_v_min (kg/ms): ', ssflux_depth_int_v_avg_masked_outer_masked_trimmed_min)
-# 0 - 10
-ssflux_depth_int_u_avg_masked_10m_masked_trimmed_min = np.nanmin(ssflux_depth_int_u_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m mean ssflux_depth_int_u_min (kg/ms): ', ssflux_depth_int_u_avg_masked_10m_masked_trimmed_min)
-ssflux_depth_int_v_avg_masked_10m_masked_trimmed_min = np.nanmin(ssflux_depth_int_v_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m mean ssflux_depth_int_v_min (kg/ms): ', ssflux_depth_int_v_avg_masked_10m_masked_trimmed_min)
-# 10 - 60
-ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_min = np.nanmin(ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m mean ssflux_depth_int_u_min (kg/ms): ', ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_min)
-ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_min = np.nanmin(ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m mean ssflux_depth_int_v_min (kg/ms): ', ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_min)
-# Surface 
-# Inner
-ssflux_u_surf_avg_masked_inner_masked_trimmed_min = np.nanmin(ssflux_u_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_u_surf_min (kg/ms): ', ssflux_u_surf_avg_masked_inner_masked_trimmed_min)
-ssflux_v_surf_avg_masked_inner_masked_trimmed_min = np.nanmin(ssflux_v_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_v_surf_min (kg/ms): ', ssflux_v_surf_avg_masked_inner_masked_trimmed_min)
+# Bottom  1m flux and ssc
+# In the grid's u and v directions
+# Plot salinity at 1 m above seafloor 
+ax8[2].fill_between(x_rho_flat_trimmed/1000, 0, 65, 
+               facecolor ='darkgray', alpha = 0.8)
+ax8[2].fill_between(x_rho_flat_trimmed/1000, 65 ,120, 
+               facecolor ='white', alpha = 0.8)
+# kg/m3
+cs22 = ax8[2].contourf(x_rho_flat_trimmed/1000, y_rho_flat/1000,
+                  ssc_1m_avg_wland_masked_trimmed, lev6, cmap=cmap5, extend='max')
+# mg/L
+#s22 = ax7[2].contourf(x_rho_flat_trimmed/1000, y_rho_flat/1000,
+ #                 ssc_1m_avg_wland_masked_trimmed*1000, lev6*1000, cmap=cmap5, extend='max')
+# Plot bathymetry contours 
+ax8[2].contour(x_rho_flat_trimmed/1000, y_rho_flat/1000, h_masked_trimmed, lev5, colors='dimgrey') # bisque
+# Plot currents
+q9 = ax8[2].quiver(x_rho_flat_trimmed_slice/1000, y_rho_flat_slice/1000, 
+                   ssflux_u_1m_avg_wland_masked_trimmed_slice, ssflux_v_1m_avg_wland_masked_trimmed_slice, 
+                   color='teal', width=2,
+                   angles='xy', scale_units='xy', units='xy')
+ax8[2].quiverkey(q9, 0.65, 0.85, U=0.001, label='0.001 kg $m^{-2}$ $s^{-1}$', fontproperties={'size':fontsize-2})
 
-# -- Max -- 
-# Depth-integrated
-# Inner
-ssflux_depth_int_u_avg_masked_inner_masked_trimmed_max = np.nanmax(ssflux_depth_int_u_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_depth_int_u_max (kg/ms): ', ssflux_depth_int_u_avg_masked_inner_masked_trimmed_max)
-ssflux_depth_int_v_avg_masked_inner_masked_trimmed_max = np.nanmax(ssflux_depth_int_v_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_depth_int_v_max (kg/ms): ', ssflux_depth_int_v_avg_masked_inner_masked_trimmed_max)
-# Mid
-ssflux_depth_int_u_avg_masked_mid_masked_trimmed_max = np.nanmax(ssflux_depth_int_u_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) averaged ssflux_depth_int_u_max (kg/ms): ', ssflux_depth_int_u_avg_masked_mid_masked_trimmed_max)
-ssflux_depth_int_v_avg_masked_mid_masked_trimmed_max = np.nanmax(ssflux_depth_int_v_avg_masked_mid_masked_trimmed, axis=(0,1))
-print('Mid shelf (20-40 m) averaged ssflux_depth_int_v_max (kg/ms): ', ssflux_depth_int_v_avg_masked_mid_masked_trimmed_max)
-# Outer
-ssflux_depth_int_u_avg_masked_outer_masked_trimmed_max = np.nanmax(ssflux_depth_int_u_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) averaged ssflux_depth_int_u_max (kg/ms): ', ssflux_depth_int_u_avg_masked_outer_masked_trimmed_max)
-ssflux_depth_int_v_avg_masked_outer_masked_trimmed_max = np.nanmax(ssflux_depth_int_v_avg_masked_outer_masked_trimmed, axis=(0,1))
-print('Outer shelf (40-60 m) averaged ssflux_depth_int_v_max (kg/ms): ', ssflux_depth_int_v_avg_masked_outer_masked_trimmed_max)
-# 0 - 10
-ssflux_depth_int_u_avg_masked_10m_masked_trimmed_max = np.nanmax(ssflux_depth_int_u_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m mean ssflux_depth_int_u_max (kg/ms): ', ssflux_depth_int_u_avg_masked_10m_masked_trimmed_max)
-ssflux_depth_int_v_avg_masked_10m_masked_trimmed_max = np.nanmax(ssflux_depth_int_v_avg_masked_10m_masked_trimmed, axis=(0,1))
-print('0 - 10 m mean ssflux_depth_int_v_max (kg/ms): ', ssflux_depth_int_v_avg_masked_10m_masked_trimmed_max)
-# 10 - 60
-ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_max = np.nanmax(ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m mean ssflux_depth_int_u_max (kg/ms): ', ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_max)
-ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_max = np.nanmax(ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed, axis=(0,1))
-print('10 - 60 m mean ssflux_depth_int_v_max (kg/ms): ', ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_max)
-# Surface 
-# Inner
-ssflux_u_surf_avg_masked_inner_masked_trimmed_max = np.nanmax(ssflux_u_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_u_surf_max (kg/ms): ', ssflux_u_surf_avg_masked_inner_masked_trimmed_max)
-ssflux_v_surf_avg_masked_inner_masked_trimmed_max = np.nanmax(ssflux_v_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
-print('Inner shelf (0-20 m) averaged ssflux_v_surf_max (kg/ms): ', ssflux_v_surf_avg_masked_inner_masked_trimmed_max)
+# Label the plot
+plt.setp(ax8[2].get_xticklabels(), visible=False)
+#ax9[2].set_xlabel('Longitude (degrees)', fontsize=fontsize)
+ax8[2].set_ylabel('Y (km)', fontsize=fontsize)
+
+# Adjust colorbar placement
+bottom, top = 0.1, 0.95
+left, right = 0.1, 0.8
+fig8.subplots_adjust(top=top, bottom=bottom, left=left, right=right, wspace=0.2, hspace=0.2)
+#axes = ax1.ravel().tolist()
+cbar8_ax = fig8.add_axes([0.82, 0.32, 0.015, 0.63]) #[left, bottom, width, height]
+# kg/m3
+cbar8 = plt.colorbar(cs20, ax=[ax8[0], ax8[1], ax8[2]], cax=cbar8_ax, orientation='vertical', pad=0.015).set_label(label='SSC \n(kg $m^{-3}$)', size=fontsize, labelpad=55, rotation='horizontal')
+# mg/L
+#cbar7 = plt.colorbar(cs20, ax=[ax7[0], ax7[1], ax7[2]], cax=cbar7_ax, orientation='vertical', pad=0.015).set_label(label='SSC \n(mg $L^{-1}$)', size=fontsize, labelpad=55, rotation='horizontal')
+
+# Plot net erosion & deposition
+ax8[3].fill_between(x_rho_flat_trimmed/1000, 0, 65, 
+               facecolor ='darkgray', alpha = 0.8)
+ax8[3].fill_between(x_rho_flat_trimmed/1000, 65 , 120, 
+               facecolor ='white', alpha = 0.8)
+cs23 = ax8[3].contourf(x_rho_flat_trimmed/1000, y_rho_flat/1000,
+                  roms_net_erodepo_bedthick_wland_masked_trimmed*100, lev7, cmap=cmap6, extend='both')
+ax8[3].contour(x_rho_flat_trimmed/1000, y_rho_flat/1000, h_masked_trimmed, lev5, colors='dimgray')
+# Colorbar
+cbar9_ax = fig8.add_axes([0.82, 0.1, 0.015, 0.2]) #[left, bottom, width, height]
+cbar9 = plt.colorbar(cs23, cax=cbar9_ax, ax=ax8[3], orientation='vertical', pad=0.015).set_label('Net \nDeposition \n(cm)', fontsize=fontsize, labelpad=85, rotation='horizontal')
+#cbar9 = plt.colorbar(cs22, cax=cbar9_ax, ax=ax6[3], orientation='vertical', pad=0.015).set_label('Net \nErosion & \nDeposition \n(cm)', fontsize=fontsize, labelpad=85, rotation='horizontal')
+
+# Label the plot
+#ax13.set_title('Time-Averaged Depth-Integrated SSC Flux for All Seds Masked', fontsize=fontsize)
+ax8[3].set_xlabel('X (km)', fontsize=fontsize)
+ax8[3].set_ylabel('Y (km)', fontsize=fontsize)
 
 
-
-# Erosoion & Deposition
-roms_net_erodepo_wland_masked_trimmed_meantot = np.mean(roms_net_erodepo_bedthick_wland_masked_trimmed)
-print('mean net erosion/deposition over full domain (m): ', roms_net_erodepo_wland_masked_trimmed_meantot)
-# Make functions to find positive and negative
-# Mean erosion (negative valules)
-def mean_negative(L):
-    # Get all negative numbers into another list
-    neg_only = [x for x in L if x < 0]
-    if neg_only:
-        return sum(neg_only) /  len(neg_only)
-    raise ValueError('No negative numbers in input')
+# Plot the river mouths for all panels 
+for r in range(4):
+    # Kalikpik River
+    s1 = ax8[r].scatter(x_rho_flat_trimmed[xi_kal_idx]/1000, y_rho_flat[eta_kal_idx]/1000, 
+                marker='.', s=500, linewidth=1, edgecolors='black', color=river_marker_colors[0], label='Kalikpik')
     
-# Call the function
-roms_net_erodepo_bedthick_wland_masked_trimmed_meanneg = mean_negative(roms_net_erodepo_bedthick_wland_masked_trimmed.values.ravel())
-print('roms_net_erodepo_bedthick_wland_masked_trimmed_mean neg/erosion (m): ', roms_net_erodepo_bedthick_wland_masked_trimmed_meanneg)
-
-# Mean deposition (positive values)
-def mean_positive(L):
-    # Get all positive numbers into another list
-    pos_only = [x for x in L if x > 0]
-    if pos_only:
-        return sum(pos_only) /  len(pos_only)
-    raise ValueError('No postive numbers in input')
+    # Fish Creek
+    s2 = ax8[r].scatter(x_rho_flat_trimmed[xi_fis_idx]/1000, y_rho_flat[eta_fis_idx]/1000, 
+                marker='.', s=500, linewidth=1, edgecolors='black', color=river_marker_colors[1], label='Fish Creek')
     
-# Call the function
-roms_net_erodepo_bedthick_wland_masked_trimmed_meanpos = mean_positive(roms_net_erodepo_bedthick_wland_masked_trimmed.values.ravel())
-print('roms_net_erodepo_bedthick_wland_masked_trimmed_mean pos/deposition (m): ', roms_net_erodepo_bedthick_wland_masked_trimmed_meanpos)
-
-# Standard deviation 
-# Standard deviation erosion (negative valules)
-def std_negative(L):
-    # Get all negative numbers into another list
-    neg_only = [x for x in L if x < 0]
-    if neg_only:
-        return np.std(neg_only)
-    raise ValueError('No negative numbers in input')
+    # Colville River
+    s3 = ax8[r].scatter(x_rho_flat_trimmed[xi_col_idx]/1000, y_rho_flat[eta_col_idx]/1000, 
+                marker='.', s=500, linewidth=1, edgecolors='black', color=river_marker_colors[2], label='Colville')
     
-# Call the function
-roms_net_erodepo_bedthick_wland_masked_trimmed_stdneg = std_negative(roms_net_erodepo_bedthick_wland_masked_trimmed.values.ravel())
-print('roms_net_erodepo_bedthick_wland_masked_trimmed std neg/erosion (m): ', roms_net_erodepo_bedthick_wland_masked_trimmed_stdneg)
-
-# Standard deviation deposition (positive values)
-def std_positive(L):
-    # Get all positive numbers into another list
-    pos_only = [x for x in L if x > 0]
-    if pos_only:
-        return np.std(pos_only)
-    raise ValueError('No postive numbers in input')
+    # Sakonowyak River
+    #s4 = ax8[r].scatter(x_rho_flat_trimmed[xi_sak_idx]/1000, y_rho_flat[eta_sak_idx]/1000, 
+     #           marker='x', s=150, linewidth=6, color='green', label='Sakonowyak')
     
-# Call the function
-roms_net_erodepo_bedthick_wland_masked_trimmed_stdpos = std_positive(roms_net_erodepo_bedthick_wland_masked_trimmed.values.ravel())
-print('roms_net_erodepo_bedthick_wland_masked_trimmed std pos/deposition (m): ', roms_net_erodepo_bedthick_wland_masked_trimmed_stdpos)
+    # Kuparik
+    # Kukpuk - Change this to be labeled as the Kuparuk since it  is actually the main channel 
+    # of the Kuparuk River
+    s5 = ax8[r].scatter(x_rho_flat_trimmed[xi_kuk_idx]/1000, y_rho_flat[eta_kuk_idx]/1000, 
+                marker='.', s=500, linewidth=1, edgecolors='black', color=river_marker_colors[4], label='Kuparuk')
+    
+    # Kuparuk - commented out to move dot onto old Kukpuk since that is the main 
+    # channel of the Kuparuk 
+    #s6 = ax7[2].scatter(x_rho_flat_trimmed[xi_kup_idx]/1000, y_rho_flat[eta_kup_idx]/1000, 
+     #           marker='x', s=100, linewidth=4, color='pink', label='Kuparuk')
+    
+    # Fawn Creek
+    #s7 = ax3[1].scatter(grid.lon_rho[eta_faw_idx, xi_faw_idx].values, grid.lat_rho[eta_faw_idx, xi_faw_idx].values, 
+     #           marker='.', s=300, linewidth=4, color='darkviolet', label='Fawn Creek')
+    
+    # Putuligayuk River
+    #s8 = ax7[2].scatter(x_rho_flat_trimmed[xi_put_idx]/1000, y_rho_flat[eta_put_idx]/1000, 
+     #           marker='x', s=100, linewidth=4, color='dodgerblue', label='Putuligayuk')
+    
+    # Sagavanirktok River
+    s9 = ax8[r].scatter(x_rho_flat_trimmed[xi_sag_idx]/1000, y_rho_flat[eta_sag_idx]/1000, 
+                marker='.', s=500, linewidth=1, edgecolors='black', color=river_marker_colors[6], label='Sagavanirktok')
+    
+    # Canning River
+    # Staines River
+    s10 = ax8[r].scatter(x_rho_flat_trimmed[xi_sta_idx]/1000, y_rho_flat[eta_sta_idx]/1000, 
+                marker='.', s=500, linewidth=1, edgecolors='black', color=river_marker_colors[7], label='Staines')
+    
+    # Canning River
+    s11 = ax8[r].scatter(x_rho_flat_trimmed[xi_can_idx]/1000, y_rho_flat[eta_can_idx]/1000, 
+                marker='.', s=500, linewidth=1, edgecolors='black', color=river_marker_colors[8], label='Canning')
+    
+    # Katakturuk River
+    s12 = ax8[r].scatter(x_rho_flat_trimmed[xi_kat_idx]/1000, y_rho_flat[eta_kat_idx]/1000, 
+                marker='.', s=500, linewidth=1, edgecolors='black', color=river_marker_colors[9], label='Katakturuk')
+    
+    # Hulahula River
+    s13 = ax8[r].scatter(x_rho_flat_trimmed[xi_hul_idx]/1000, y_rho_flat[eta_hul_idx]/1000, 
+                marker='.', s=500, linewidth=1, edgecolors='black', color=river_marker_colors[10], label='Hulahula')
+    
+    # Jago River
+    s14 = ax8[r].scatter(x_rho_flat_trimmed[xi_jag_idx]/1000, y_rho_flat[eta_jag_idx]/1000, 
+                marker='.', s=500, linewidth=1, edgecolors='black', color=river_marker_colors[11], label='Jago')
+    
+    # Siksik River
+    #s15 = ax7[2].scatter(x_rho_flat_trimmed[xi_sik_idx]/1000, y_rho_flat[eta_sik_idx]/1000, 
+    #            marker='.', s=300, linewidth=4, color='deeppink', label='Siksik')
 
 
-# Calculate percent of space that time-averaged, depth-integrated ss fluxes were
-# westward 
-# Percent negative flux
-def pcnt_negative(L):
-    # Get all negative numbers into another list
-    neg_only = [x for x in L if x < 0]
-    print('len neg only: ', len(neg_only))
-    print('len L: ', len(L))
-    # Get length of L without nans
-    nans = [y for y in L if np.isnan(y)]
-    print('len nan: ', len(nans))
-    if neg_only:
-        return len(neg_only)/(len(L)-len(nans))
-    raise ValueError('No negative numbers in input')
+# Adjust spacing between subplots
+plt.subplots_adjust(hspace=0.08) #0.08
 
-# Call the function
-ssflux_depth_int_u_avg_wland_masked_trimmed_slice_pcnt_west = pcnt_negative(ssflux_depth_int_u_avg_wland_masked_trimmed_slice.values.ravel())
-print('Percent of space that depth-integrated ssc flux is westward: ', ssflux_depth_int_u_avg_wland_masked_trimmed_slice_pcnt_west)
+# Put a legend for the rivers
+ax8[3].legend(fontsize=fontsize-2, loc='center left', ncol=4, columnspacing=0.1, 
+              labelspacing=0.1,  bbox_to_anchor=(0.1, -0.45))
 
-# Percent positive flux
-def pcnt_positive(L):
-    # Get all negative numbers into another list
-    pos_only = [x for x in L if x > 0]
-    print('len pos only: ', len(pos_only))
-    print('len L: ', len(L))
-    # Get length of L without nans
-    nans = [y for y in L if np.isnan(y)]
-    print('len nan: ', len(nans))
-    if pos_only:
-        return len(pos_only)/(len(L)-len(nans))
-    raise ValueError('No positive numbers in input')
-
-# Call the function
-ssflux_depth_int_u_avg_wland_masked_trimmed_slice_pcnt_east = pcnt_positive(ssflux_depth_int_u_avg_wland_masked_trimmed_slice.values.ravel())
-print('Percent of space that depth-integrated ssc flux is eastward: ', ssflux_depth_int_u_avg_wland_masked_trimmed_slice_pcnt_east)
+# Add subplot labels
+# =============================================================================
+# plt.text(0.775, 0.924, 'a)', fontsize=fontsize, fontweight='bold', color='k', transform=plt.gcf().transFigure)
+# plt.text(0.775, 0.634, 'b)', fontsize=fontsize, fontweight='bold', color='k', transform=plt.gcf().transFigure)
+# plt.text(0.775, 0.346, 'c)', fontsize=fontsize, fontweight='bold', color='k', transform=plt.gcf().transFigure)
+# plt.text(0.775, 0.246, 'd)', fontsize=fontsize, fontweight='bold', color='k', transform=plt.gcf().transFigure)
+# =============================================================================
+# Add labels
+# Bottom right 
+plt.text(0.773, 0.760, 'a)', fontsize=fontsize, fontweight='bold', color='k', transform=plt.gcf().transFigure)
+plt.text(0.773, 0.542, 'b)', fontsize=fontsize, fontweight='bold', color='k', transform=plt.gcf().transFigure)
+plt.text(0.773, 0.329, 'c)', fontsize=fontsize, fontweight='bold', color='k', transform=plt.gcf().transFigure)
+plt.text(0.773, 0.113, 'd)', fontsize=fontsize, fontweight='bold', color='k', transform=plt.gcf().transFigure)
 
 
 
 
-# -------------------------------------------------------------------------------
-# ---- Make a netcdf to hold the output data used for plotting 
-# -------------------------------------------------------------------------------
-# Set up the data
-roms_time_avg_ssc_depth_avg_surf_bot_erodepo = xr.Dataset(
-    data_vars=dict(
-        ssc_depth_avg_time_avg=(['y','x'], ssc_depth_avg_allsed_avg_trimmed.values),
-        ssflux_u_depth_int_time_avg=(['y_slice','x_slice'], ssflux_depth_int_u_avg_wland_masked_trimmed_slice.values),
-        ssflux_v_depth_int_time_avg=(['y_slice','x_slice'], ssflux_depth_int_v_avg_wland_masked_trimmed_slice.values),
-        ssc_surf_time_avg=(['y','x'], ssc_surf_allsed_avg_wland_masked_trimmed.values),
-        ssflux_u_surf_time_avg=(['y_slice','x_slice'], ssflux_u_surf_avg_wland_masked_trimmed_slice.values),
-        ssflux_v_surf_time_avg=(['y_slice','x_slice'], ssflux_v_surf_avg_wland_masked_trimmed_slice.values),
-        ssc_1m_above_seafloor_time_avg=(['y','x'], ssc_1m_avg_wland_masked_trimmed.values),
-        ssflux_u_1m_above_seafloor_time_avg=(['y_slice','x_slice'], ssflux_u_1m_avg_wland_masked_trimmed_slice.values),
-        ssflux_v_1m_above_seafloor_time_avg=(['y_slice','x_slice'], ssflux_v_1m_avg_wland_masked_trimmed_slice.values),
-        net_ero_depo=(['y','x'], roms_net_erodepo_bedthick_wland_masked_trimmed.values*100),
-        ),
-    coords=dict(
-        x_full=('x', x_rho_flat_trimmed),
-        x_slice=('x_slice', x_rho_flat_trimmed_slice),
-        y_full=('y', y_rho_flat), 
-        y_slice=('y_slice', y_rho_flat_slice)
-        ),
-    attrs=dict(description='Time-averaged ROMS output including depth-averaged, surface, and 1 meter above seafloor suspended sediment concentrations (mg/m3) and fluxes, and net deposition (cm)')) 
-# Add more metadata?
-roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssc_depth_avg_time_avg.name='depth-averaged, time-averaged suspended sediment concentration (kg/m3)'
-roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_u_depth_int_time_avg.name='depth-integrated, time-averaged suspended sediment flux in u direction (kg/m/s)'
-roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_v_depth_int_time_avg.name='depth-integrated, time-averaged suspended sediment flux in v direction (kg/m/s)'
-roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssc_surf_time_avg.name='time-averaged surface suspended sediment concentration (kg/m3)'
-roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_u_surf_time_avg.name='time-averaged surface suspended sediment flux in u direction (kg/m2/s)'
-roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_v_surf_time_avg.name='time-averaged surface suspended sediment flux in v direction (kg/m2/s)'
-roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssc_1m_above_seafloor_time_avg.name='time-averaged suspended sediment concentration (kg/m3) 1m above seafloor'
-roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_u_1m_above_seafloor_time_avg.name='time-averaged suspended sediment flux in u direction (kg/m2/s) 1m above seafloor'
-roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_v_1m_above_seafloor_time_avg.name='time-averaged suspended sediment flux in v direction (kg/m2/s) 1m above seafloor'
-roms_time_avg_ssc_depth_avg_surf_bot_erodepo.net_ero_depo.name='net deposition (cm)'
 
-# Save to a netcdf
-#roms_time_avg_ssc_depth_avg_surf_bot_erodepo.to_netcdf('/Users/brun1463/Desktop/Research_Lab/Kaktovik_Alaska_2020/Paper1_Take2/fig8_roms_depth_avg_surf_bot_ssc_ssflux_erodepo.nc')
 
+
+####################3 COMMENT OUT BELOW FOR NOW TEMP #################
+
+
+
+
+
+
+# =============================================================================
+# # Calculate and print a bunch of stats 
+# # Make a function to mask the data
+# def masked_array(data, threshold):
+#     """
+#     This function takes an array and masks all values that are less
+#     than a certain given threshold. The functions returns 1 for areas that meet 
+#     the condition and 0 for areas that don't. So areas where the array is less
+#     than the threshold get returned as 1 and areas greater than the threshold
+#     are returned as 0. This function maintains the shape of the array.
+#     
+#     """
+#     return (data <= threshold).astype(int)
+# 
+# # Make a function to mask the data but that takes two thresholds
+# def masked_array_lowhigh_2dloop(data, lower, upper):
+#     """
+#     This function takes an array and masks all values that are less
+#     than a certain given threshold. The functions returns 1 for areas that meet 
+#     the condition and 0 for areas that don't. So areas where the array is less
+#     than the threshold get returned as 1 and areas greater than the threshold
+#     are returned as 0. This function maintains the shape of the array.
+#     
+#     """
+#     mask_tmp = np.empty_like((data))
+#     
+#     # Loop through dimension 1
+#     for i in range(len(data[:,0])):
+#         # Loop through dimension 2
+#         for j in range(len(data[0,:])):
+#             # Compare against threshold 
+#             value = data[i,j]
+#             if lower < value <= upper:
+#                 mask_tmp[i,j] = 1
+#             else:
+#                 mask_tmp[i,j] = 0
+#     
+#     
+#     return (mask_tmp).astype(int)
+#  
+# # Call the function to make the mask
+# # First make an array of the bathymetry of the grid pre-masked
+# h_masked = grid.h * mask_rho_nan.nudge_mask_rho_nan
+# # Inner shelf
+# h_masked1 = h_masked.copy()
+# #inner_shelf_mask_rho = masked_array(h_masked1, 20)
+# inner_shelf_mask_rho = masked_array_lowhigh_2dloop(h_masked1, 2, 20)
+# # Mid shelf
+# h_masked2 = h_masked.copy()
+# mid_shelf_mask_rho = masked_array_lowhigh_2dloop(h_masked2, 20, 40)
+# # Outer shelf 
+# h_masked3 = h_masked.copy()
+# outer_shelf_mask_rho = masked_array_lowhigh_2dloop(h_masked3, 40, 60)
+# # 0 - 10 m depth
+# h_masked4 = h_masked.copy()
+# #inner_10m_mask_rho = masked_array(h_masked4, 10)
+# inner_10m_mask_rho = masked_array_lowhigh_2dloop(h_masked4, 2, 10)
+# # 10 - 60 m depth
+# h_masked5 = h_masked.copy()
+# outer_10_60m_mask_rho = masked_array_lowhigh_2dloop(h_masked5, 10, 60)
+# 
+# # Make the masks nan where they are 0 so that these out of bounds areas are 
+# # nanned out 
+# # Inner Shelf
+# inner_shelf_mask_rho_nan_idx = np.where(inner_shelf_mask_rho == 0.0)
+# inner_shelf_mask_rho_nan = inner_shelf_mask_rho.copy()
+# inner_shelf_mask_rho_nan = inner_shelf_mask_rho_nan.astype('float')
+# inner_shelf_mask_rho_nan[inner_shelf_mask_rho_nan_idx] = np.nan
+# # Mid Shelf
+# mid_shelf_mask_rho_nan_idx = np.where(mid_shelf_mask_rho == 0.0)
+# mid_shelf_mask_rho_nan = mid_shelf_mask_rho.copy()
+# mid_shelf_mask_rho_nan = mid_shelf_mask_rho_nan.astype('float')
+# mid_shelf_mask_rho_nan[mid_shelf_mask_rho_nan_idx] = np.nan
+# # Outer Shelf 
+# outer_shelf_mask_rho_nan_idx = np.where(outer_shelf_mask_rho == 0.0)
+# outer_shelf_mask_rho_nan = outer_shelf_mask_rho.copy()
+# outer_shelf_mask_rho_nan = outer_shelf_mask_rho_nan.astype('float')
+# outer_shelf_mask_rho_nan[outer_shelf_mask_rho_nan_idx] = np.nan
+# # 0 - 10 m depth
+# inner_10m_mask_rho_nan_idx = np.where(inner_10m_mask_rho == 0.0)
+# inner_10m_mask_rho_nan = inner_10m_mask_rho.copy()
+# inner_10m_mask_rho_nan = inner_10m_mask_rho_nan.astype('float')
+# inner_10m_mask_rho_nan[inner_10m_mask_rho_nan_idx] = np.nan
+# # 10 - 60 m depth
+# outer_10_60m_mask_rho_nan_idx = np.where(outer_10_60m_mask_rho == 0.0)
+# outer_10_60m_mask_rho_nan = outer_10_60m_mask_rho.copy()
+# outer_10_60m_mask_rho_nan = outer_10_60m_mask_rho_nan.astype('float')
+# outer_10_60m_mask_rho_nan[outer_10_60m_mask_rho_nan_idx] = np.nan
+# 
+# 
+# # Now multiply by the mask to get the different regions 
+# # For depth-averaged ssc
+# # Inner 
+# ssc_depth_avg_allsed_avg_masked_inner = ssc_depth_avg_allsed_avg * inner_shelf_mask_rho_nan
+# # Mid
+# ssc_depth_avg_allsed_avg_masked_mid = ssc_depth_avg_allsed_avg * mid_shelf_mask_rho_nan
+# # Outer
+# ssc_depth_avg_allsed_avg_masked_outer = ssc_depth_avg_allsed_avg * outer_shelf_mask_rho_nan
+# # 0 - 10 m
+# ssc_depth_avg_allsed_avg_masked_10m = ssc_depth_avg_allsed_avg * inner_10m_mask_rho_nan
+# # 10 - 60 m
+# ssc_depth_avg_allsed_avg_masked_10_60m = ssc_depth_avg_allsed_avg * outer_10_60m_mask_rho_nan
+# 
+# # For surface SSC 
+# # Inner 
+# ssc_surf_allsed_avg_masked_inner = ssc_surf_allsed_avg * inner_shelf_mask_rho_nan
+# # Mid
+# ssc_surf_allsed_avg_masked_mid = ssc_surf_allsed_avg * mid_shelf_mask_rho_nan
+# # Outer
+# ssc_surf_allsed_avg_masked_outer = ssc_surf_allsed_avg * outer_shelf_mask_rho_nan
+# # 0 - 10 m
+# ssc_surf_allsed_avg_masked_10m = ssc_surf_allsed_avg * inner_10m_mask_rho_nan
+# # 10 - 60 m
+# ssc_surf_allsed_avg_masked_10_60m = ssc_surf_allsed_avg * outer_10_60m_mask_rho_nan
+# 
+# # For depth-integrated ssflux
+# # 0 - 10 m eastern
+# # u
+# ssflux_depth_int_u_avg_masked_10m = ssflux_depth_int_u_avg * inner_10m_mask_rho
+# ssflux_depth_int_u_avg_masked_10m_east = ssflux_depth_int_u_avg_masked_10m[:,304:]
+# # v 
+# ssflux_depth_int_v_avg_masked_10m = ssflux_depth_int_v_avg * inner_10m_mask_rho
+# ssflux_depth_int_v_avg_masked_10m_east = ssflux_depth_int_v_avg_masked_10m[:,304:]
+# # 0 - 10 m western
+# # u
+# ssflux_depth_int_u_avg_masked_10m_west = ssflux_depth_int_u_avg_masked_10m[:,:304]
+# # v 
+# ssflux_depth_int_v_avg_masked_10m_west = ssflux_depth_int_v_avg_masked_10m[:,:304]
+# # Inner 
+# ssflux_depth_int_u_avg_masked_inner = ssflux_depth_int_u_avg * inner_shelf_mask_rho_nan
+# ssflux_depth_int_v_avg_masked_inner = ssflux_depth_int_v_avg * inner_shelf_mask_rho_nan
+# # Mid
+# ssflux_depth_int_u_avg_masked_mid = ssflux_depth_int_u_avg * mid_shelf_mask_rho_nan
+# ssflux_depth_int_v_avg_masked_mid = ssflux_depth_int_v_avg * mid_shelf_mask_rho_nan
+# # Outer
+# ssflux_depth_int_u_avg_masked_outer = ssflux_depth_int_u_avg * outer_shelf_mask_rho_nan
+# ssflux_depth_int_v_avg_masked_outer = ssflux_depth_int_v_avg * outer_shelf_mask_rho_nan
+# # 0 - 10 m
+# ssflux_depth_int_u_avg_masked_10m = ssflux_depth_int_u_avg * inner_10m_mask_rho_nan
+# ssflux_depth_int_v_avg_masked_10m = ssflux_depth_int_v_avg * inner_10m_mask_rho_nan
+# # 10 - 60 m
+# ssflux_depth_int_u_avg_masked_10_60m = ssflux_depth_int_u_avg * outer_10_60m_mask_rho_nan
+# ssflux_depth_int_v_avg_masked_10_60m = ssflux_depth_int_v_avg * outer_10_60m_mask_rho_nan
+# # Surface ssflux
+# # Inner 
+# ssflux_u_surf_avg_masked_inner = ssflux_u_surf_avg * inner_shelf_mask_rho_nan
+# ssflux_v_surf_avg_masked_inner = ssflux_v_surf_avg * inner_shelf_mask_rho_nan
+# 
+# # Mask and trim these so that we are just looking at the regions in the plot
+# # Mask, trim, slice
+# # Mask
+# # SSC
+# # Depth-averaged SSC
+# # Inner
+# ssc_depth_avg_allsed_avg_masked_inner_masked = ssc_depth_avg_allsed_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # Mid
+# ssc_depth_avg_allsed_avg_masked_mid_masked = ssc_depth_avg_allsed_avg_masked_mid*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # Outer
+# ssc_depth_avg_allsed_avg_masked_outer_masked = ssc_depth_avg_allsed_avg_masked_outer*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # 0 - 10 m
+# ssc_depth_avg_allsed_avg_masked_10m_masked = ssc_depth_avg_allsed_avg_masked_10m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # 10 - 60 m
+# ssc_depth_avg_allsed_avg_masked_10_60m_masked = ssc_depth_avg_allsed_avg_masked_10_60m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # Surface SSC
+# # Inner
+# ssc_surf_allsed_avg_masked_inner_masked = ssc_surf_allsed_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # Mid
+# ssc_surf_allsed_avg_masked_mid_masked = ssc_surf_allsed_avg_masked_mid*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # Outer
+# ssc_surf_allsed_avg_masked_outer_masked = ssc_surf_allsed_avg_masked_outer*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # 0 - 10 m
+# ssc_surf_allsed_avg_masked_10m_masked = ssc_surf_allsed_avg_masked_10m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # 10 - 60 m
+# ssc_surf_allsed_avg_masked_10_60m_masked = ssc_surf_allsed_avg_masked_10_60m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# 
+# # SSflux - depth-integrated 
+# # Inner
+# ssflux_depth_int_u_avg_masked_inner_masked = ssflux_depth_int_u_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# ssflux_depth_int_v_avg_masked_inner_masked = ssflux_depth_int_v_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # Mid
+# ssflux_depth_int_u_avg_masked_mid_masked = ssflux_depth_int_u_avg_masked_mid*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# ssflux_depth_int_v_avg_masked_mid_masked = ssflux_depth_int_v_avg_masked_mid*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # Outer
+# ssflux_depth_int_u_avg_masked_outer_masked = ssflux_depth_int_u_avg_masked_outer*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# ssflux_depth_int_v_avg_masked_outer_masked = ssflux_depth_int_v_avg_masked_outer*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # 0 - 10 m
+# ssflux_depth_int_u_avg_masked_10m_masked = ssflux_depth_int_u_avg_masked_10m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# ssflux_depth_int_v_avg_masked_10m_masked = ssflux_depth_int_v_avg_masked_10m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # 10 - 60 m
+# ssflux_depth_int_u_avg_masked_10_60m_masked = ssflux_depth_int_u_avg_masked_10_60m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# ssflux_depth_int_v_avg_masked_10_60m_masked = ssflux_depth_int_v_avg_masked_10_60m*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# # Surface ssflux
+# # Inner
+# ssflux_u_surf_avg_masked_inner_masked = ssflux_u_surf_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# ssflux_v_surf_avg_masked_inner_masked = ssflux_v_surf_avg_masked_inner*temp_mask*mask_rho_nan.nudge_mask_rho_nan*temp_mask
+# 
+# 
+# # Trim
+# # SSC
+# # Depth-averaged SSC
+# # Inner
+# ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed = ssc_depth_avg_allsed_avg_masked_inner_masked[:,c_west:-c_west]
+# # Mid
+# ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed = ssc_depth_avg_allsed_avg_masked_mid_masked[:,c_west:-c_west]
+# # Outer
+# ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed = ssc_depth_avg_allsed_avg_masked_outer_masked[:,c_west:-c_west]
+# # 0 - 10 m
+# ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed = ssc_depth_avg_allsed_avg_masked_10m_masked[:,c_west:-c_west]
+# # 10 - 60 m
+# ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed = ssc_depth_avg_allsed_avg_masked_10_60m_masked[:,c_west:-c_west]
+# # Surface SSC
+# # Inner
+# ssc_surf_allsed_avg_masked_inner_masked_trimmed = ssc_surf_allsed_avg_masked_inner_masked[:,c_west:-c_west]
+# # Mid
+# ssc_surf_allsed_avg_masked_mid_masked_trimmed = ssc_surf_allsed_avg_masked_mid_masked[:,c_west:-c_west]
+# # Outer 
+# ssc_surf_allsed_avg_masked_outer_masked_trimmed = ssc_surf_allsed_avg_masked_outer_masked[:,c_west:-c_west]
+# # 0 - 10 m
+# ssc_surf_allsed_avg_masked_10m_masked_trimmed = ssc_surf_allsed_avg_masked_10m_masked[:,c_west:-c_west]
+# # 10 - 60 m
+# ssc_surf_allsed_avg_masked_10_60m_masked_trimmed = ssc_surf_allsed_avg_masked_10_60m_masked[:,c_west:-c_west]
+# 
+# # SSflux
+# # Inner
+# ssflux_depth_int_u_avg_masked_inner_masked_trimmed = ssflux_depth_int_u_avg_masked_inner_masked[:,c_west:-c_west]
+# ssflux_depth_int_v_avg_masked_inner_masked_trimmed = ssflux_depth_int_v_avg_masked_inner_masked[:,c_west:-c_west]
+# # Mid
+# ssflux_depth_int_u_avg_masked_mid_masked_trimmed = ssflux_depth_int_u_avg_masked_mid_masked[:,c_west:-c_west]
+# ssflux_depth_int_v_avg_masked_mid_masked_trimmed = ssflux_depth_int_v_avg_masked_mid_masked[:,c_west:-c_west]
+# # Outer 
+# ssflux_depth_int_u_avg_masked_outer_masked_trimmed = ssflux_depth_int_u_avg_masked_outer_masked[:,c_west:-c_west]
+# ssflux_depth_int_v_avg_masked_outer_masked_trimmed = ssflux_depth_int_v_avg_masked_outer_masked[:,c_west:-c_west]
+# # 0 - 10 m
+# ssflux_depth_int_u_avg_masked_10m_masked_trimmed = ssflux_depth_int_u_avg_masked_10m_masked[:,c_west:-c_west]
+# ssflux_depth_int_v_avg_masked_10m_masked_trimmed = ssflux_depth_int_v_avg_masked_10m_masked[:,c_west:-c_west]
+# # 10 - 60 m
+# ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed = ssflux_depth_int_u_avg_masked_10_60m_masked[:,c_west:-c_west]
+# ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed = ssflux_depth_int_v_avg_masked_10_60m_masked[:,c_west:-c_west]
+# # Surface ssflux
+# # Inner
+# ssflux_u_surf_avg_masked_inner_masked_trimmed = ssflux_u_surf_avg_masked_inner_masked[:,c_west:-c_west]
+# ssflux_v_surf_avg_masked_inner_masked_trimmed = ssflux_v_surf_avg_masked_inner_masked[:,c_west:-c_west]
+# 
+# 
+# 
+# # Print some statistics 
+# # SSC
+# # Depth-averaged SSC
+# # Mean 
+# ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_avg)
+# ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_avg = np.nanmean(ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) averaged ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_avg)
+# ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_avg = np.nanmean(ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) averaged ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_avg)
+# ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_avg = np.nanmean(ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m mean ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_avg)
+# ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_avg = np.nanmean(ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m mean ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_avg)
+# 
+# # Standard deviation 
+# ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_std = np.nanstd(ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) std ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_std)
+# ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_std = np.nanstd(ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) std ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_std)
+# ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_std = np.nanstd(ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) std ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_std)
+# ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_std = np.nanstd(ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m std total ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_std)
+# ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_std = np.nanstd(ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m std ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_std)
+# 
+# # Min
+# ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_min = np.nanmin(ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) min ssc_depth_avg_allsed_avg(kg/m3): ', ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_min)
+# ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_min = np.nanmin(ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) min ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_min)
+# ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_min = np.nanmin(ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) min ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_min)
+# ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_min = np.nanmin(ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m min ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_min)
+# ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_min = np.nanmin(ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m min ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_min)
+# 
+# # Max
+# ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_max = np.nanmax(ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) max ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_inner_masked_trimmed_max)
+# ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_max = np.nanmax(ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) max ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_mid_masked_trimmed_max)
+# ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_max = np.nanmax(ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) max ssc_depth_avg_allsed_avg (kg/m3: ', ssc_depth_avg_allsed_avg_masked_outer_masked_trimmed_max)
+# ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_max = np.nanmax(ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m max tssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10m_masked_trimmed_max)
+# ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_max = np.nanmax(ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m max ssc_depth_avg_allsed_avg (kg/m3): ', ssc_depth_avg_allsed_avg_masked_10_60m_masked_trimmed_max)
+# 
+# 
+# # Surface SSC
+# # Mean 
+# ssc_surf_allsed_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssc_surf_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_inner_masked_trimmed_avg)
+# ssc_surf_allsed_avg_masked_mid_masked_trimmed_avg = np.nanmean(ssc_surf_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) averaged ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_mid_masked_trimmed_avg)
+# ssc_surf_allsed_avg_masked_outer_masked_trimmed_avg = np.nanmean(ssc_surf_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) averaged ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_outer_masked_trimmed_avg)
+# ssc_surf_allsed_avg_masked_10m_masked_trimmed_avg = np.nanmean(ssc_surf_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m mean ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10m_masked_trimmed_avg)
+# ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_avg = np.nanmean(ssc_surf_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m mean ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_avg)
+# 
+# # Standard deviation 
+# ssc_surf_allsed_avg_masked_inner_masked_trimmed_std = np.nanstd(ssc_surf_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) std ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_inner_masked_trimmed_std)
+# ssc_surf_allsed_avg_masked_mid_masked_trimmed_std = np.nanstd(ssc_surf_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) std ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_mid_masked_trimmed_std)
+# ssc_surf_allsed_avg_masked_outer_masked_trimmed_std = np.nanstd(ssc_surf_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) std ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_outer_masked_trimmed_std)
+# ssc_surf_allsed_avg_masked_10m_masked_trimmed_std = np.nanstd(ssc_surf_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m std total ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10m_masked_trimmed_std)
+# ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_std = np.nanstd(ssc_surf_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m std ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_std)
+# 
+# # Min
+# ssc_surf_allsed_avg_masked_inner_masked_trimmed_min = np.nanmin(ssc_surf_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) min ssc_surf_allsed_avg(kg/m3): ', ssc_surf_allsed_avg_masked_inner_masked_trimmed_min)
+# ssc_surf_allsed_avg_masked_mid_masked_trimmed_min = np.nanmin(ssc_surf_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) min ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_mid_masked_trimmed_min)
+# ssc_surf_allsed_avg_masked_outer_masked_trimmed_min = np.nanmin(ssc_surf_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) min ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_outer_masked_trimmed_min)
+# ssc_surf_allsed_avg_masked_10m_masked_trimmed_min = np.nanmin(ssc_surf_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m min ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10m_masked_trimmed_min)
+# ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_min = np.nanmin(ssc_surf_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m min ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_min)
+# 
+# # Max
+# ssc_surf_allsed_avg_masked_inner_masked_trimmed_max = np.nanmax(ssc_surf_allsed_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) max ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_inner_masked_trimmed_max)
+# ssc_surf_allsed_avg_masked_mid_masked_trimmed_max = np.nanmax(ssc_surf_allsed_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) max ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_mid_masked_trimmed_max)
+# ssc_surf_allsed_avg_masked_outer_masked_trimmed_max = np.nanmax(ssc_surf_allsed_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) max ssc_surf_allsed_avg (kg/m3: ', ssc_surf_allsed_avg_masked_outer_masked_trimmed_max)
+# ssc_surf_allsed_avg_masked_10m_masked_trimmed_max = np.nanmax(ssc_surf_allsed_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m max tssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10m_masked_trimmed_max)
+# ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_max = np.nanmax(ssc_surf_allsed_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m max ssc_surf_allsed_avg (kg/m3): ', ssc_surf_allsed_avg_masked_10_60m_masked_trimmed_max)
+# 
+# 
+# 
+# # Ssflux 
+# # Mean in 0 - 10 m depth in east
+# # u
+# ssflux_depth_int_u_avg_masked_10m_east_avg = np.nanmean(ssflux_depth_int_u_avg_masked_10m_east, axis=(0,1))
+# print('0 - 10 m mean total ssflux_depth_int_u_avg_masked_10m_east (kg/ms):', ssflux_depth_int_u_avg_masked_10m_east_avg)
+# # v
+# ssflux_depth_int_v_avg_masked_10m_east_avg = np.nanmean(ssflux_depth_int_v_avg_masked_10m_east, axis=(0,1))
+# print('0 - 10 m mean total ssflux_depth_int_v_avg_masked_10m_east (kg/ms):', ssflux_depth_int_v_avg_masked_10m_east_avg)
+# # Mean in 0 - 10 m depth in west
+# # u
+# ssflux_depth_int_u_avg_masked_10m_west_avg = np.nanmean(ssflux_depth_int_u_avg_masked_10m_west, axis=(0,1))
+# print('0 - 10 m mean total ssflux_depth_int_u_avg_masked_10m_west (kg/ms):', ssflux_depth_int_u_avg_masked_10m_west_avg)
+# # v
+# ssflux_depth_int_v_avg_masked_10m_west_avg = np.nanmean(ssflux_depth_int_v_avg_masked_10m_west, axis=(0,1))
+# print('0 - 10 m mean total ssflux_depth_int_v_avg_masked_10m_west (kg/ms):', ssflux_depth_int_v_avg_masked_10m_west_avg)
+# # -- Mean --
+# # Depth-integrated
+# # Inner
+# ssflux_depth_int_u_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssflux_depth_int_u_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_depth_int_u_avg (kg/ms): ', ssflux_depth_int_u_avg_masked_inner_masked_trimmed_avg)
+# ssflux_depth_int_v_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssflux_depth_int_v_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_depth_int_v_avg (kg/ms): ', ssflux_depth_int_v_avg_masked_inner_masked_trimmed_avg)
+# # Mid
+# ssflux_depth_int_u_avg_masked_mid_masked_trimmed_avg = np.nanmean(ssflux_depth_int_u_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) averaged ssflux_depth_int_u_avg (kg/ms): ', ssflux_depth_int_u_avg_masked_mid_masked_trimmed_avg)
+# ssflux_depth_int_v_avg_masked_mid_masked_trimmed_avg = np.nanmean(ssflux_depth_int_v_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) averaged ssflux_depth_int_v_avg (kg/ms): ', ssflux_depth_int_v_avg_masked_mid_masked_trimmed_avg)
+# # Outer
+# ssflux_depth_int_u_avg_masked_outer_masked_trimmed_avg = np.nanmean(ssflux_depth_int_u_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) averaged ssflux_depth_int_u_avg (kg/ms): ', ssflux_depth_int_u_avg_masked_outer_masked_trimmed_avg)
+# ssflux_depth_int_v_avg_masked_outer_masked_trimmed_avg = np.nanmean(ssflux_depth_int_v_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) averaged ssflux_depth_int_v_avg (kg/ms): ', ssflux_depth_int_v_avg_masked_outer_masked_trimmed_avg)
+# # 0 - 10
+# ssflux_depth_int_u_avg_masked_10m_masked_trimmed_avg = np.nanmean(ssflux_depth_int_u_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m mean ssflux_depth_int_u_avg (kg/ms): ', ssflux_depth_int_u_avg_masked_10m_masked_trimmed_avg)
+# ssflux_depth_int_v_avg_masked_10m_masked_trimmed_avg = np.nanmean(ssflux_depth_int_v_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m mean ssflux_depth_int_v_avg (kg/ms): ', ssflux_depth_int_v_avg_masked_10m_masked_trimmed_avg)
+# # 10 - 60
+# ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_avg = np.nanmean(ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m mean ssflux_depth_int_u_avg (kg/ms): ', ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_avg)
+# ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_avg = np.nanmean(ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m mean ssflux_depth_int_v_avg (kg/ms): ', ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_avg)
+# # Surface 
+# # Inner
+# ssflux_u_surf_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssflux_u_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_u_surf_avg (kg/ms): ', ssflux_u_surf_avg_masked_inner_masked_trimmed_avg)
+# ssflux_v_surf_avg_masked_inner_masked_trimmed_avg = np.nanmean(ssflux_v_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_v_surf_avg (kg/ms): ', ssflux_v_surf_avg_masked_inner_masked_trimmed_avg)
+# 
+# 
+# # -- Standard deviation--
+# # Depth-integrated
+# # Inner
+# ssflux_depth_int_u_avg_masked_inner_masked_trimmed_std = np.nanstd(ssflux_depth_int_u_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_depth_int_u_std (kg/ms): ', ssflux_depth_int_u_avg_masked_inner_masked_trimmed_std)
+# ssflux_depth_int_v_avg_masked_inner_masked_trimmed_std = np.nanstd(ssflux_depth_int_v_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_depth_int_v_std (kg/ms): ', ssflux_depth_int_v_avg_masked_inner_masked_trimmed_std)
+# # Mid
+# ssflux_depth_int_u_avg_masked_mid_masked_trimmed_std = np.nanstd(ssflux_depth_int_u_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) averaged ssflux_depth_int_u_std (kg/ms): ', ssflux_depth_int_u_avg_masked_mid_masked_trimmed_std)
+# ssflux_depth_int_v_avg_masked_mid_masked_trimmed_std = np.nanstd(ssflux_depth_int_v_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) averaged ssflux_depth_int_v_std (kg/ms): ', ssflux_depth_int_v_avg_masked_mid_masked_trimmed_std)
+# # Outer
+# ssflux_depth_int_u_avg_masked_outer_masked_trimmed_std = np.nanstd(ssflux_depth_int_u_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) averaged ssflux_depth_int_u_std (kg/ms): ', ssflux_depth_int_u_avg_masked_outer_masked_trimmed_std)
+# ssflux_depth_int_v_avg_masked_outer_masked_trimmed_std = np.nanstd(ssflux_depth_int_v_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) averaged ssflux_depth_int_v_std (kg/ms): ', ssflux_depth_int_v_avg_masked_outer_masked_trimmed_std)
+# # 0 - 10
+# ssflux_depth_int_u_avg_masked_10m_masked_trimmed_std = np.nanstd(ssflux_depth_int_u_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m mean ssflux_depth_int_u_std (kg/ms): ', ssflux_depth_int_u_avg_masked_10m_masked_trimmed_std)
+# ssflux_depth_int_v_avg_masked_10m_masked_trimmed_std = np.nanstd(ssflux_depth_int_v_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m mean ssflux_depth_int_v_std (kg/ms): ', ssflux_depth_int_v_avg_masked_10m_masked_trimmed_std)
+# # 10 - 60
+# ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_std = np.nanstd(ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m mean ssflux_depth_int_u_std (kg/ms): ', ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_std)
+# ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_std = np.nanstd(ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m mean ssflux_depth_int_v_std (kg/ms): ', ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_std)
+# # Surface 
+# # Inner
+# ssflux_u_surf_avg_masked_inner_masked_trimmed_std = np.nanstd(ssflux_u_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_u_surf_std (kg/ms): ', ssflux_u_surf_avg_masked_inner_masked_trimmed_std)
+# ssflux_v_surf_avg_masked_inner_masked_trimmed_std = np.nanstd(ssflux_v_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_v_surf_std (kg/ms): ', ssflux_v_surf_avg_masked_inner_masked_trimmed_std)
+# 
+# 
+# # -- Min --
+# # Depth-integrated
+# # Inner
+# ssflux_depth_int_u_avg_masked_inner_masked_trimmed_min = np.nanmin(ssflux_depth_int_u_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_depth_int_u_min (kg/ms): ', ssflux_depth_int_u_avg_masked_inner_masked_trimmed_min)
+# ssflux_depth_int_v_avg_masked_inner_masked_trimmed_min = np.nanmin(ssflux_depth_int_v_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_depth_int_v_min (kg/ms): ', ssflux_depth_int_v_avg_masked_inner_masked_trimmed_min)
+# # Mid
+# ssflux_depth_int_u_avg_masked_mid_masked_trimmed_min = np.nanmin(ssflux_depth_int_u_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) averaged ssflux_depth_int_u_min (kg/ms): ', ssflux_depth_int_u_avg_masked_mid_masked_trimmed_min)
+# ssflux_depth_int_v_avg_masked_mid_masked_trimmed_min = np.nanmin(ssflux_depth_int_v_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) averaged ssflux_depth_int_v_min (kg/ms): ', ssflux_depth_int_v_avg_masked_mid_masked_trimmed_min)
+# # Outer
+# ssflux_depth_int_u_avg_masked_outer_masked_trimmed_min = np.nanmin(ssflux_depth_int_u_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) averaged ssflux_depth_int_u_min (kg/ms): ', ssflux_depth_int_u_avg_masked_outer_masked_trimmed_min)
+# ssflux_depth_int_v_avg_masked_outer_masked_trimmed_min = np.nanmin(ssflux_depth_int_v_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) averaged ssflux_depth_int_v_min (kg/ms): ', ssflux_depth_int_v_avg_masked_outer_masked_trimmed_min)
+# # 0 - 10
+# ssflux_depth_int_u_avg_masked_10m_masked_trimmed_min = np.nanmin(ssflux_depth_int_u_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m mean ssflux_depth_int_u_min (kg/ms): ', ssflux_depth_int_u_avg_masked_10m_masked_trimmed_min)
+# ssflux_depth_int_v_avg_masked_10m_masked_trimmed_min = np.nanmin(ssflux_depth_int_v_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m mean ssflux_depth_int_v_min (kg/ms): ', ssflux_depth_int_v_avg_masked_10m_masked_trimmed_min)
+# # 10 - 60
+# ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_min = np.nanmin(ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m mean ssflux_depth_int_u_min (kg/ms): ', ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_min)
+# ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_min = np.nanmin(ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m mean ssflux_depth_int_v_min (kg/ms): ', ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_min)
+# # Surface 
+# # Inner
+# ssflux_u_surf_avg_masked_inner_masked_trimmed_min = np.nanmin(ssflux_u_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_u_surf_min (kg/ms): ', ssflux_u_surf_avg_masked_inner_masked_trimmed_min)
+# ssflux_v_surf_avg_masked_inner_masked_trimmed_min = np.nanmin(ssflux_v_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_v_surf_min (kg/ms): ', ssflux_v_surf_avg_masked_inner_masked_trimmed_min)
+# 
+# # -- Max -- 
+# # Depth-integrated
+# # Inner
+# ssflux_depth_int_u_avg_masked_inner_masked_trimmed_max = np.nanmax(ssflux_depth_int_u_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_depth_int_u_max (kg/ms): ', ssflux_depth_int_u_avg_masked_inner_masked_trimmed_max)
+# ssflux_depth_int_v_avg_masked_inner_masked_trimmed_max = np.nanmax(ssflux_depth_int_v_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_depth_int_v_max (kg/ms): ', ssflux_depth_int_v_avg_masked_inner_masked_trimmed_max)
+# # Mid
+# ssflux_depth_int_u_avg_masked_mid_masked_trimmed_max = np.nanmax(ssflux_depth_int_u_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) averaged ssflux_depth_int_u_max (kg/ms): ', ssflux_depth_int_u_avg_masked_mid_masked_trimmed_max)
+# ssflux_depth_int_v_avg_masked_mid_masked_trimmed_max = np.nanmax(ssflux_depth_int_v_avg_masked_mid_masked_trimmed, axis=(0,1))
+# print('Mid shelf (20-40 m) averaged ssflux_depth_int_v_max (kg/ms): ', ssflux_depth_int_v_avg_masked_mid_masked_trimmed_max)
+# # Outer
+# ssflux_depth_int_u_avg_masked_outer_masked_trimmed_max = np.nanmax(ssflux_depth_int_u_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) averaged ssflux_depth_int_u_max (kg/ms): ', ssflux_depth_int_u_avg_masked_outer_masked_trimmed_max)
+# ssflux_depth_int_v_avg_masked_outer_masked_trimmed_max = np.nanmax(ssflux_depth_int_v_avg_masked_outer_masked_trimmed, axis=(0,1))
+# print('Outer shelf (40-60 m) averaged ssflux_depth_int_v_max (kg/ms): ', ssflux_depth_int_v_avg_masked_outer_masked_trimmed_max)
+# # 0 - 10
+# ssflux_depth_int_u_avg_masked_10m_masked_trimmed_max = np.nanmax(ssflux_depth_int_u_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m mean ssflux_depth_int_u_max (kg/ms): ', ssflux_depth_int_u_avg_masked_10m_masked_trimmed_max)
+# ssflux_depth_int_v_avg_masked_10m_masked_trimmed_max = np.nanmax(ssflux_depth_int_v_avg_masked_10m_masked_trimmed, axis=(0,1))
+# print('0 - 10 m mean ssflux_depth_int_v_max (kg/ms): ', ssflux_depth_int_v_avg_masked_10m_masked_trimmed_max)
+# # 10 - 60
+# ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_max = np.nanmax(ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m mean ssflux_depth_int_u_max (kg/ms): ', ssflux_depth_int_u_avg_masked_10_60m_masked_trimmed_max)
+# ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_max = np.nanmax(ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed, axis=(0,1))
+# print('10 - 60 m mean ssflux_depth_int_v_max (kg/ms): ', ssflux_depth_int_v_avg_masked_10_60m_masked_trimmed_max)
+# # Surface 
+# # Inner
+# ssflux_u_surf_avg_masked_inner_masked_trimmed_max = np.nanmax(ssflux_u_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_u_surf_max (kg/ms): ', ssflux_u_surf_avg_masked_inner_masked_trimmed_max)
+# ssflux_v_surf_avg_masked_inner_masked_trimmed_max = np.nanmax(ssflux_v_surf_avg_masked_inner_masked_trimmed, axis=(0,1))
+# print('Inner shelf (0-20 m) averaged ssflux_v_surf_max (kg/ms): ', ssflux_v_surf_avg_masked_inner_masked_trimmed_max)
+# 
+# 
+# 
+# # Erosoion & Deposition
+# roms_net_erodepo_wland_masked_trimmed_meantot = np.mean(roms_net_erodepo_bedthick_wland_masked_trimmed)
+# print('mean net erosion/deposition over full domain (m): ', roms_net_erodepo_wland_masked_trimmed_meantot)
+# # Make functions to find positive and negative
+# # Mean erosion (negative valules)
+# def mean_negative(L):
+#     # Get all negative numbers into another list
+#     neg_only = [x for x in L if x < 0]
+#     if neg_only:
+#         return sum(neg_only) /  len(neg_only)
+#     raise ValueError('No negative numbers in input')
+#     
+# # Call the function
+# roms_net_erodepo_bedthick_wland_masked_trimmed_meanneg = mean_negative(roms_net_erodepo_bedthick_wland_masked_trimmed.values.ravel())
+# print('roms_net_erodepo_bedthick_wland_masked_trimmed_mean neg/erosion (m): ', roms_net_erodepo_bedthick_wland_masked_trimmed_meanneg)
+# 
+# # Mean deposition (positive values)
+# def mean_positive(L):
+#     # Get all positive numbers into another list
+#     pos_only = [x for x in L if x > 0]
+#     if pos_only:
+#         return sum(pos_only) /  len(pos_only)
+#     raise ValueError('No postive numbers in input')
+#     
+# # Call the function
+# roms_net_erodepo_bedthick_wland_masked_trimmed_meanpos = mean_positive(roms_net_erodepo_bedthick_wland_masked_trimmed.values.ravel())
+# print('roms_net_erodepo_bedthick_wland_masked_trimmed_mean pos/deposition (m): ', roms_net_erodepo_bedthick_wland_masked_trimmed_meanpos)
+# 
+# # Standard deviation 
+# # Standard deviation erosion (negative valules)
+# def std_negative(L):
+#     # Get all negative numbers into another list
+#     neg_only = [x for x in L if x < 0]
+#     if neg_only:
+#         return np.std(neg_only)
+#     raise ValueError('No negative numbers in input')
+#     
+# # Call the function
+# roms_net_erodepo_bedthick_wland_masked_trimmed_stdneg = std_negative(roms_net_erodepo_bedthick_wland_masked_trimmed.values.ravel())
+# print('roms_net_erodepo_bedthick_wland_masked_trimmed std neg/erosion (m): ', roms_net_erodepo_bedthick_wland_masked_trimmed_stdneg)
+# 
+# # Standard deviation deposition (positive values)
+# def std_positive(L):
+#     # Get all positive numbers into another list
+#     pos_only = [x for x in L if x > 0]
+#     if pos_only:
+#         return np.std(pos_only)
+#     raise ValueError('No postive numbers in input')
+#     
+# # Call the function
+# roms_net_erodepo_bedthick_wland_masked_trimmed_stdpos = std_positive(roms_net_erodepo_bedthick_wland_masked_trimmed.values.ravel())
+# print('roms_net_erodepo_bedthick_wland_masked_trimmed std pos/deposition (m): ', roms_net_erodepo_bedthick_wland_masked_trimmed_stdpos)
+# 
+# 
+# # Calculate percent of space that time-averaged, depth-integrated ss fluxes were
+# # westward 
+# # Percent negative flux
+# def pcnt_negative(L):
+#     # Get all negative numbers into another list
+#     neg_only = [x for x in L if x < 0]
+#     print('len neg only: ', len(neg_only))
+#     print('len L: ', len(L))
+#     # Get length of L without nans
+#     nans = [y for y in L if np.isnan(y)]
+#     print('len nan: ', len(nans))
+#     if neg_only:
+#         return len(neg_only)/(len(L)-len(nans))
+#     raise ValueError('No negative numbers in input')
+# 
+# # Call the function
+# ssflux_depth_int_u_avg_wland_masked_trimmed_slice_pcnt_west = pcnt_negative(ssflux_depth_int_u_avg_wland_masked_trimmed_slice.values.ravel())
+# print('Percent of space that depth-integrated ssc flux is westward: ', ssflux_depth_int_u_avg_wland_masked_trimmed_slice_pcnt_west)
+# 
+# # Percent positive flux
+# def pcnt_positive(L):
+#     # Get all negative numbers into another list
+#     pos_only = [x for x in L if x > 0]
+#     print('len pos only: ', len(pos_only))
+#     print('len L: ', len(L))
+#     # Get length of L without nans
+#     nans = [y for y in L if np.isnan(y)]
+#     print('len nan: ', len(nans))
+#     if pos_only:
+#         return len(pos_only)/(len(L)-len(nans))
+#     raise ValueError('No positive numbers in input')
+# 
+# # Call the function
+# ssflux_depth_int_u_avg_wland_masked_trimmed_slice_pcnt_east = pcnt_positive(ssflux_depth_int_u_avg_wland_masked_trimmed_slice.values.ravel())
+# print('Percent of space that depth-integrated ssc flux is eastward: ', ssflux_depth_int_u_avg_wland_masked_trimmed_slice_pcnt_east)
+# 
+# 
+# 
+# 
+# # -------------------------------------------------------------------------------
+# # ---- Make a netcdf to hold the output data used for plotting 
+# # -------------------------------------------------------------------------------
+# # Set up the data
+# roms_time_avg_ssc_depth_avg_surf_bot_erodepo = xr.Dataset(
+#     data_vars=dict(
+#         ssc_depth_avg_time_avg=(['y','x'], ssc_depth_avg_allsed_avg_trimmed.values),
+#         ssflux_u_depth_int_time_avg=(['y_slice','x_slice'], ssflux_depth_int_u_avg_wland_masked_trimmed_slice.values),
+#         ssflux_v_depth_int_time_avg=(['y_slice','x_slice'], ssflux_depth_int_v_avg_wland_masked_trimmed_slice.values),
+#         ssc_surf_time_avg=(['y','x'], ssc_surf_allsed_avg_wland_masked_trimmed.values),
+#         ssflux_u_surf_time_avg=(['y_slice','x_slice'], ssflux_u_surf_avg_wland_masked_trimmed_slice.values),
+#         ssflux_v_surf_time_avg=(['y_slice','x_slice'], ssflux_v_surf_avg_wland_masked_trimmed_slice.values),
+#         ssc_1m_above_seafloor_time_avg=(['y','x'], ssc_1m_avg_wland_masked_trimmed.values),
+#         ssflux_u_1m_above_seafloor_time_avg=(['y_slice','x_slice'], ssflux_u_1m_avg_wland_masked_trimmed_slice.values),
+#         ssflux_v_1m_above_seafloor_time_avg=(['y_slice','x_slice'], ssflux_v_1m_avg_wland_masked_trimmed_slice.values),
+#         net_ero_depo=(['y','x'], roms_net_erodepo_bedthick_wland_masked_trimmed.values*100),
+#         ),
+#     coords=dict(
+#         x_full=('x', x_rho_flat_trimmed),
+#         x_slice=('x_slice', x_rho_flat_trimmed_slice),
+#         y_full=('y', y_rho_flat), 
+#         y_slice=('y_slice', y_rho_flat_slice)
+#         ),
+#     attrs=dict(description='Time-averaged ROMS output including depth-averaged, surface, and 1 meter above seafloor suspended sediment concentrations (mg/m3) and fluxes, and net deposition (cm)')) 
+# # Add more metadata?
+# roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssc_depth_avg_time_avg.name='depth-averaged, time-averaged suspended sediment concentration (kg/m3)'
+# roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_u_depth_int_time_avg.name='depth-integrated, time-averaged suspended sediment flux in u direction (kg/m/s)'
+# roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_v_depth_int_time_avg.name='depth-integrated, time-averaged suspended sediment flux in v direction (kg/m/s)'
+# roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssc_surf_time_avg.name='time-averaged surface suspended sediment concentration (kg/m3)'
+# roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_u_surf_time_avg.name='time-averaged surface suspended sediment flux in u direction (kg/m2/s)'
+# roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_v_surf_time_avg.name='time-averaged surface suspended sediment flux in v direction (kg/m2/s)'
+# roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssc_1m_above_seafloor_time_avg.name='time-averaged suspended sediment concentration (kg/m3) 1m above seafloor'
+# roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_u_1m_above_seafloor_time_avg.name='time-averaged suspended sediment flux in u direction (kg/m2/s) 1m above seafloor'
+# roms_time_avg_ssc_depth_avg_surf_bot_erodepo.ssflux_v_1m_above_seafloor_time_avg.name='time-averaged suspended sediment flux in v direction (kg/m2/s) 1m above seafloor'
+# roms_time_avg_ssc_depth_avg_surf_bot_erodepo.net_ero_depo.name='net deposition (cm)'
+# 
+# # Save to a netcdf
+# #roms_time_avg_ssc_depth_avg_surf_bot_erodepo.to_netcdf('/Users/brun1463/Desktop/Research_Lab/Kaktovik_Alaska_2020/Paper1_Take2/fig8_roms_depth_avg_surf_bot_ssc_ssflux_erodepo.nc')
+# 
+# =============================================================================
 
