@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=20
+#SBATCH --time=04:00:00
+#SBATCH --qos=normal
+#SBATCH --partition=amilan
+#SBATCH --job-name=flow_integrated_transects
+#SBATCH --output=flow_integrated_transects_009.out
+
+module purge
+module load anaconda
+conda activate xesmf_env
+
+python3 plot_flow_integrated_transects.py

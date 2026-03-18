@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=30
+#SBATCH --time=02:00:00
+#SBATCH --qos=normal
+#SBATCH --partition=amilan
+#SBATCH --job-name=scatter_plot_sediment_flux_2020
+#SBATCH --output=scatter_plot_sediment_flux_2020_double_waves_002.out
+
+module purge
+module load anaconda
+conda activate xesmf_env
+
+python3 scatter_plot_sediment_flux_2020.py

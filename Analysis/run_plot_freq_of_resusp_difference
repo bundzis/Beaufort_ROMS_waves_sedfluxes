@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=20
+#SBATCH --time=00:20:00
+#SBATCH --qos=normal
+#SBATCH --partition=amilan
+#SBATCH --job-name=freq_of_resusp_diff
+#SBATCH --output=freq_of_resusp_diff_002.out
+
+module purge
+module load anaconda
+conda activate xesmf_env
+
+python3 plot_freq_of_resusp_difference.py

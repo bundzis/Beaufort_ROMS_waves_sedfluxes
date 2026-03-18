@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=30
+#SBATCH --time=02:00:00
+#SBATCH --qos=normal
+#SBATCH --partition=amilan
+#SBATCH --job-name=time_avg_currents_salinity
+#SBATCH --output=time_avg_currents_salinity_standard_avg1mfromsurf_001.out
+
+module purge
+module load anaconda
+conda activate xroms
+
+python3 plot_time_avg_currents_salinity_masked_xy_2020.py
